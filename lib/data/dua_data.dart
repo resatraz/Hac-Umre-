@@ -1,0 +1,103 @@
+import 'package:flutter/material.dart';
+import 'models.dart';
+
+const List<Dua> dualar = [
+  Dua(
+    id: 'telbiye',
+    baslik: 'Telbiye Duası',
+    kategori: 'İhram',
+    arapca: 'لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ',
+    okunus: 'Lebbeyk Allahümme lebbeyk, lebbeyke lâ şerîke leke lebbeyk, inne\'l-hamde ve\'n-ni\'mete leke ve\'l-mülk, lâ şerîke lek',
+    anlam: 'Buyur Allahım buyur! Emrindeyim. Senin ortağın yoktur. Hamd sana, nimet senden, mülk senindir. Ortağın yoktur.',
+    aciklama: 'İhrama girerken ve ihram boyunca sıkça tekrarlanır. Sesli söylemek sünnettir.',
+    icon: Icons.record_voice_over_rounded,
+  ),
+  Dua(
+    id: 'tavaf_dua',
+    baslik: 'Tavaf Duası',
+    kategori: 'Tavaf',
+    arapca: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ',
+    okunus: 'Rabbenâ âtinâ fi\'d-dünyâ haseneten ve fi\'l-âhirati haseneten ve kınâ azâbe\'n-nâr',
+    anlam: 'Rabbimiz! Bize dünyada iyilik, ahirette de iyilik ver ve bizi ateş azabından koru.',
+    aciklama: 'Tavafın her şavtında, özellikle Rükn-i Yemânî ile Hacerülesved arasında okunur.',
+    icon: Icons.mosque_rounded,
+  ),
+  Dua(
+    id: 'say_dua',
+    baslik: 'Sa\'y Duası',
+    kategori: "Sa'y",
+    arapca: 'رَبِّ اغْفِرْ وَارْحَمْ وَاعْفُ وَتَكَرَّمْ وَتَجَاوَزْ عَمَّا تَعْلَمُ إِنَّكَ تَعْلَمُ مَا لَا نَعْلَمُ',
+    okunus: 'Rabbiğfir verham va\'fu ve tekerrem ve tecâvez ammâ ta\'lem, inneke ta\'lemü mâ lâ na\'lem',
+    anlam: 'Rabbim bağışla, merhamet et, affet, kerem et, bildiğin günahlarımızı sil. Sen bilmediğimizi de bilirsin.',
+    aciklama: 'Safa-Merve arasında yürürken okunur.',
+    icon: Icons.directions_walk_rounded,
+  ),
+  Dua(
+    id: 'arafat_dua',
+    baslik: 'Arafat Duası',
+    kategori: 'Arafat',
+    arapca: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',
+    okunus: 'Lâ ilâhe illallahu vahdehû lâ şerîke leh, lehü\'l-mülkü ve lehü\'l-hamdü ve hüve alâ külli şey\'in kadîr',
+    anlam: 'Allah\'tan başka ilah yoktur, O tektir, ortağı yoktur. Mülk O\'nundur, hamd O\'nadır, O her şeye kadirdir.',
+    aciklama: 'Arafat vakfesinde en faziletli zikir. Peygamberimiz (s.a.v.) bu duayı çokça okumuştur.',
+    icon: Icons.wb_sunny_rounded,
+  ),
+  Dua(
+    id: 'zemzem',
+    baslik: 'Zemzem Duası',
+    kategori: 'Genel',
+    arapca: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا وَاسِعًا وَشِفَاءً مِنْ كُلِّ دَاءٍ',
+    okunus: 'Allahümme innî es\'elüke ilmen nâfian ve rızkan vâsian ve şifâen min külli dâin',
+    anlam: 'Allahım senden faydalı ilim, geniş rızık ve her hastalıktan şifa dilerim.',
+    aciklama: 'Zemzem içerken okunur, ayakta ve kıbleye dönerek içilir.',
+    icon: Icons.water_drop_rounded,
+  ),
+  Dua(
+    id: 'ravza_selam',
+    baslik: 'Ravza Selam Duası',
+    kategori: 'Medine',
+    arapca: 'السَّلَامُ عَلَيْكَ يَا رَسُولَ اللَّهِ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ',
+    okunus: 'Esselâmü aleyke yâ Rasûlallah ve rahmetullahi ve berekâtüh',
+    anlam: 'Selam sana ey Allah\'ın Resûlü, Allah\'ın rahmet ve bereketi üzerine olsun.',
+    aciklama: 'Mescid-i Nebevi\'de ve Ravza\'da Peygamberimize selam verirken okunur.',
+    icon: Icons.spa_rounded,
+  ),
+  Dua(
+    id: 'istigfar',
+    baslik: 'İstiğfar Duası',
+    kategori: 'Genel',
+    arapca: 'أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ',
+    okunus: 'Estağfirullahe\'l-azîm ve etûbü ileyh',
+    anlam: 'Yüce Allah\'tan bağışlanma diler ve O\'na tövbe ederim.',
+    aciklama: 'Her yerde, özellikle Arafat ve Müzdelife\'de çokça okunur.',
+    icon: Icons.self_improvement_rounded,
+  ),
+  Dua(
+    id: 'veda',
+    baslik: 'Veda Tavafı Duası',
+    kategori: 'Tavaf',
+    arapca: 'اللَّهُمَّ لَا تَجْعَلْهُ آخِرَ الْعَهْدِ مِنْ بَيْتِكَ',
+    okunus: 'Allahümme lâ tec\'alhu âhiral-ahdi min beytik',
+    anlam: 'Allahım bu tavafı evinle son buluşmam eyleme, tekrar gelmeyi nasip et.',
+    aciklama: 'Veda tavafından sonra Mekke\'den ayrılırken okunur.',
+    icon: Icons.favorite_rounded,
+  ),
+];
+
+const List<HaritaNokta> mekkeNoktalar = [
+  HaritaNokta(id: 'kabe_map', ad: 'Kâbe', sehir: 'Mekke', x: 0.50, y: 0.45, icon: Icons.mosque_rounded, color: Color(0xFF0D5C3D)),
+  HaritaNokta(id: 'safa', ad: 'Safa', sehir: 'Mekke', x: 0.55, y: 0.38, icon: Icons.landscape_rounded, color: Color(0xFF2E7D32)),
+  HaritaNokta(id: 'merve', ad: 'Merve', sehir: 'Mekke', x: 0.55, y: 0.52, icon: Icons.landscape_rounded, color: Color(0xFF2E7D32)),
+  HaritaNokta(id: 'arafat_map', ad: 'Arafat', sehir: 'Mekke', x: 0.78, y: 0.30, icon: Icons.wb_sunny_rounded, color: Color(0xFFE65100)),
+  HaritaNokta(id: 'muzdelife_map', ad: 'Müzdelife', sehir: 'Mekke', x: 0.65, y: 0.35, icon: Icons.nights_stay_rounded, color: Color(0xFF283593)),
+  HaritaNokta(id: 'mina_map', ad: 'Mina', sehir: 'Mekke', x: 0.62, y: 0.28, icon: Icons.terrain_rounded, color: Color(0xFF6A1B9A)),
+  HaritaNokta(id: 'zemzem_map', ad: 'Zemzem', sehir: 'Mekke', x: 0.48, y: 0.48, icon: Icons.water_drop_rounded, color: Color(0xFF0277BD)),
+];
+
+const List<HaritaNokta> medineNoktalar = [
+  HaritaNokta(id: 'nebevi', ad: 'Mescid-i Nebevi', sehir: 'Medine', x: 0.50, y: 0.40, icon: Icons.mosque_outlined, color: Color(0xFF0D5C3D)),
+  HaritaNokta(id: 'ravza_map', ad: 'Ravza', sehir: 'Medine', x: 0.50, y: 0.42, icon: Icons.spa_rounded, color: Color(0xFF2E7D32)),
+  HaritaNokta(id: 'kuba_map', ad: 'Kuba', sehir: 'Medine', x: 0.35, y: 0.65, icon: Icons.home_work_rounded, color: Color(0xFF6A1B9A)),
+  HaritaNokta(id: 'uhud_map', ad: 'Uhud', sehir: 'Medine', x: 0.55, y: 0.15, icon: Icons.military_tech_rounded, color: Color(0xFFBF360C)),
+  HaritaNokta(id: 'kibleteyn_map', ad: 'Kıbleteyn', sehir: 'Medine', x: 0.30, y: 0.30, icon: Icons.explore_rounded, color: Color(0xFF0277BD)),
+];

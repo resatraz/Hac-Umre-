@@ -1,0 +1,148 @@
+import 'package:flutter/material.dart';
+import '../../theme/app_theme.dart';
+import '../zikirmatik_screen.dart';
+import '../takvim_screen.dart';
+import '../ziyaret_list_screen.dart';
+import '../harita_screen.dart';
+import '../dualar_screen.dart';
+import 'mekke_medine_saati_screen.dart';
+import 'ezan_sesleri_screen.dart';
+import 'cuz_screen.dart';
+import 'kuran_elifba_screen.dart';
+import 'ezan_vakti_namaz_screen.dart';
+
+class UygulamaKlasoruScreen extends StatelessWidget {
+  const UygulamaKlasoruScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Uygulama')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryLight,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.15)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.folder_rounded, color: AppTheme.primary, size: 20),
+                SizedBox(width: 8),
+                Expanded(child: Text('Diğer özellikler bu klasörde toplandı — Ana Sayfa, Hac ve Umre alt navigasyonda.', style: TextStyle(fontSize: 12, color: AppTheme.primaryDark))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _FolderCard(
+            title: 'Zikirmatik',
+            subtitle: 'Sayaç • Tesbihat • 3D Pusula • Günlük Dualar',
+            icon: Icons.touch_app_rounded,
+            gradient: const [Color(0xFF00695C), Color(0xFF26A69A)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZikirmatikScreen())),
+          ),
+          _FolderCard(
+            title: 'Takvim',
+            subtitle: 'Hicri / Miladi • Kandil bildirimleri',
+            icon: Icons.calendar_month_rounded,
+            gradient: const [Color(0xFF4A148C), Color(0xFF7B1FA2)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TakvimScreen())),
+          ),
+          _FolderCard(
+            title: 'Ziyaret Yerleri',
+            subtitle: 'Mekke & Medine • 14 mekan',
+            icon: Icons.place_rounded,
+            gradient: const [Color(0xFF1565C0), Color(0xFF42A5F5)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZiyaretListScreen())),
+          ),
+          _FolderCard(
+            title: 'Harita',
+            subtitle: 'Offline destekli • OSM • Konum',
+            icon: Icons.map_rounded,
+            gradient: const [Color(0xFF2E7D32), Color(0xFF66BB6A)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HaritaScreen())),
+          ),
+          _FolderCard(
+            title: 'Dualar',
+            subtitle: 'API (126+1001) • TTS sesli • Offline',
+            icon: Icons.menu_book_rounded,
+            gradient: const [Color(0xFF8D6E1F), Color(0xFFC5A253)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DualarScreen())),
+          ),
+          _FolderCard(
+            title: 'Mekke & Medine Saati',
+            subtitle: 'Canlı • Analog + Dijital • Hicri tarih • Ezan vakitleri',
+            icon: Icons.schedule_rounded,
+            gradient: const [Color(0xFF37474F), Color(0xFF78909C)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MekkeMedineSaatiScreen())),
+          ),
+          _FolderCard(
+            title: 'Ezan Sesleri',
+            subtitle: '9 Drive ses • İndirmeli • Bildirim • Tıklama koruması',
+            icon: Icons.music_note_rounded,
+            gradient: const [Color(0xFF6A1B9A), Color(0xFFAB47BC)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EzanSesleriScreen())),
+          ),
+          _FolderCard(
+            title: 'Cüz (30 Cüz)',
+            subtitle: 'Hafız seç • Kaydet • Kaldığın yer • Play koruması',
+            icon: Icons.auto_stories_rounded,
+            gradient: const [Color(0xFF004D40), Color(0xFF00796B)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CuzScreen())),
+          ),
+          _FolderCard(
+            title: 'Kur\'an-ı Kerim & Elifba',
+            subtitle: 'Sure/Mushaf • 28 ders • Meal • Hatim — com.kurankerim',
+            icon: Icons.menu_book_rounded,
+            gradient: const [Color(0xFF0D47A1), Color(0xFF42A5F5)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const KuranElifbaScreen())),
+          ),
+          _FolderCard(
+            title: 'Ezan Vakti : Namaz ve Kuran',
+            subtitle: 'Konum vakit • Geri sayım • Kıble • 99 İsim — com.nurnamazprogrami',
+            icon: Icons.access_time_rounded,
+            gradient: const [Color(0xFFBF360C), Color(0xFFFF7043)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EzanVaktiNamazScreen())),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FolderCard extends StatelessWidget {
+  final String title, subtitle;
+  final IconData icon;
+  final List<Color> gradient;
+  final VoidCallback onTap;
+  const _FolderCard({required this.title, required this.subtitle, required this.icon, required this.gradient, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: gradient.first.withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 4))],
+          ),
+          child: Row(
+            children: [
+              Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: Colors.white, size: 22)),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)), Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 11))])),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
