@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../theme/app_theme.dart';
 import '../../services/ezan_ses_service.dart';
 import '../../services/bildirim_service.dart';
+import '../../services/ezan_vakti_service.dart';
 
 class EzanSesleriScreen extends StatefulWidget {
   const EzanSesleriScreen({super.key});
@@ -45,7 +45,7 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
         _downloaded[id] = true;
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$name indirildi • Offline çalınabilir'), backgroundColor: AppTheme.primary));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$name hazır • Offline çalınabilir ✓'), backgroundColor: AppTheme.primary));
     } catch (e) {
       setState(() => _prog.remove(id));
       if (!mounted) return;
@@ -87,17 +87,27 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
               children: [
                 const Row(children: [Icon(Icons.notifications_active_rounded, size: 16, color: AppTheme.goldDark), SizedBox(width: 6), Text('Bildirim', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppTheme.goldDark))]),
                 const SizedBox(height: 6),
-                Row(
+                  Row(
                   children: [
                     Expanded(child: Text('Ezan vakitlerinde bildirim al (Mekke/Medine)', style: TextStyle(fontSize: 11, color: Colors.grey.shade800))),
                     Switch(value: _bildirimAcik, activeThumbColor: AppTheme.primary, onChanged: (v) async {
                       setState(() => _bildirimAcik = v);
                       if (v) {
-                        await _bildirim.showTestBildirim(sehir: 'Mekke');
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bildirim izni istendi • Test bildirimi gönderildi')));
+                        try {
+                          final vakit = await EzanVaktiService().fetchBugun(16309);
+                          await _bildirim.scheduleVakitBildirimleri(vakit, 'Mekke');
+                          await _bildirim.showTestBildirim(sehir: 'Mekke');
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vakit bildirimleri planlandı • ${vakit.miladiUzun} 6 vakit • Zamanında gelecek'), backgroundColor: AppTheme.primary));
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Planlama hatası: $e')));
+                          setState(() => _bildirimAcik = false);
+                        }
                       } else {
                         await _bildirim.cancelAll();
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tüm vakit bildirimleri iptal edildi')));
                       }
                     }),
                   ],
@@ -123,7 +133,7 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
                     children: [
                       Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: dl ? AppTheme.primaryLight : Colors.grey.shade100, borderRadius: BorderRadius.circular(10)), child: Icon(dl ? Icons.offline_pin_rounded : Icons.cloud_download_rounded, size: 18, color: dl ? AppTheme.primary : Colors.grey)),
                       const SizedBox(width: 10),
-                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)), Text(dl ? 'İndirildi • Offline' : 'İndirilmedi • Stream', style: TextStyle(fontSize: 11, color: dl ? AppTheme.primary : Colors.grey.shade600)), Text('ID: ${id.substring(0, 8)}...', style: TextStyle(fontSize: 9, color: Colors.grey.shade400))])),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)), Text(prog != null ? '${(prog * 100).toInt()}% indiriliyor...' : (dl ? 'Offline • Hazır ✓' : 'Çevrimdışı için dokunun'), style: TextStyle(fontSize: 11, color: dl ? AppTheme.primary : Colors.grey.shade600)), Text('ID: ${id.substring(0, 8)}...', style: TextStyle(fontSize: 9, color: Colors.grey.shade400))])),
                       if (prog != null)
                         SizedBox(width: 60, height: 60, child: Stack(alignment: Alignment.center, children: [CircularProgressIndicator(value: prog, strokeWidth: 3, color: AppTheme.primary), Text('${(prog * 100).toInt()}%', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700))])),
                       if (prog == null) ...[
@@ -138,12 +148,9 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
                   ),
                   if (playing)
                     Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(10)), child: Row(children: [const Icon(Icons.graphic_eq_rounded, size: 14, color: AppTheme.primary), const SizedBox(width: 6), Expanded(child: Text('$name • Tıklama koruması aktif • Dinleme kaydediliyor', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w600))), InkWell(onTap: () async { await _ses.stop(); setState(() => _playing = {}); }, child: const Text('Durdur', style: TextStyle(fontSize: 11, color: Colors.red, fontWeight: FontWeight.w700)))])),
-                  Row(
-                    children: [
-                      TextButton.icon(icon: const Icon(Icons.copy_rounded, size: 12), label: const Text('Link kopyala', style: TextStyle(fontSize: 10)), onPressed: () async { await Clipboard.setData(ClipboardData(text: driveDownloadUrl(id))); if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Drive link kopyalandı'))); }, style: TextButton.styleFrom(visualDensity: VisualDensity.compact)),
-                      const Spacer(),
-                      FutureBuilder<int>(future: _ses.getCount(id), builder: (c, s) => Text('Dinlenme: ${s.data ?? 0}', style: TextStyle(fontSize: 10, color: Colors.grey.shade600))),
-                    ],
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: FutureBuilder<int>(future: _ses.getCount(id), builder: (c, s) => Text('Dinlenme: ${s.data ?? 0}', style: TextStyle(fontSize: 10, color: Colors.grey.shade600))),
                   ),
                 ],
               ),

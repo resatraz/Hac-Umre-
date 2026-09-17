@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tzdata;
+import 'ezan_vakti_service.dart';
 
 class BildirimService {
   static final BildirimService _i = BildirimService._();
@@ -43,6 +44,22 @@ class BildirimService {
     const android = AndroidNotificationDetails('ezan_vakti_daily', 'Ezan Vakti Günlük', importance: Importance.high, priority: Priority.high);
     const details = NotificationDetails(android: android);
     await _plugin.zonedSchedule(id, title, body, scheduled, details, androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.time);
+  }
+
+  Future<void> scheduleVakitBildirimleri(VakitGun vakit, String sehir) async {
+    if (!_ready) await init();
+    await cancelAll();
+    final times = {'İmsak': vakit.imsak, 'Güneş': vakit.gunes, 'Öğle': vakit.ogle, 'İkindi': vakit.ikindi, 'Akşam': vakit.aksam, 'Yatsı': vakit.yatsi};
+    int id = 100;
+    for (final e in times.entries) {
+      final parts = e.value.split(':');
+      if (parts.length != 2) continue;
+      final hour = int.tryParse(parts[0]) ?? 0;
+      final minute = int.tryParse(parts[1]) ?? 0;
+      await scheduleDaily(id: id, title: '$sehir ${e.key} • Ezan vakti', body: '$sehir ${e.key} ezanı ${e.value} — Hac & Umre Rehberi', hour: hour, minute: minute);
+      id++;
+    }
+    debugPrint('Vakit bildirimleri planlandı $sehir ${vakit.miladiUzun}');
   }
 
   Future<void> cancelAll() async => _plugin.cancelAll();

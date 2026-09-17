@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
 import '../zikirmatik_screen.dart';
 import '../takvim_screen.dart';
@@ -8,11 +9,18 @@ import '../dualar_screen.dart';
 import 'mekke_medine_saati_screen.dart';
 import 'ezan_sesleri_screen.dart';
 import 'cuz_screen.dart';
-import 'kuran_elifba_screen.dart';
-import 'ezan_vakti_namaz_screen.dart';
 
 class UygulamaKlasoruScreen extends StatelessWidget {
   const UygulamaKlasoruScreen({super.key});
+
+  Future<void> _openStore(BuildContext context, String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Açılamadı: $url')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,17 +103,17 @@ class UygulamaKlasoruScreen extends StatelessWidget {
           ),
           _FolderCard(
             title: 'Kur\'an-ı Kerim & Elifba',
-            subtitle: 'Sure/Mushaf • 28 ders • Meal • Hatim — com.kurankerim',
+            subtitle: 'Play Store • com.kurankerim — Dokun Play Store\'a git',
             icon: Icons.menu_book_rounded,
             gradient: const [Color(0xFF0D47A1), Color(0xFF42A5F5)],
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const KuranElifbaScreen())),
+            onTap: () => _openStore(context, 'https://play.google.com/store/apps/details?id=com.kurankerim&pcampaignid=web_share'),
           ),
           _FolderCard(
             title: 'Ezan Vakti : Namaz ve Kuran',
-            subtitle: 'Konum vakit • Geri sayım • Kıble • 99 İsim — com.nurnamazprogrami',
+            subtitle: 'Play Store • com.nurnamazprogrami — Dokun Play Store\'a git',
             icon: Icons.access_time_rounded,
             gradient: const [Color(0xFFBF360C), Color(0xFFFF7043)],
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EzanVaktiNamazScreen())),
+            onTap: () => _openStore(context, 'https://play.google.com/store/apps/details?id=com.nurnamazprogrami&pcampaignid=web_share'),
           ),
         ],
       ),

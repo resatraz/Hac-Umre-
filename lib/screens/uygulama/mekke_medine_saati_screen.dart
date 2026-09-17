@@ -88,7 +88,7 @@ class _MekkeMedineSaatiScreenState extends State<MekkeMedineSaatiScreen> with Si
             sehir: 'Medine',
             aciklama: 'Mescid-i Nebevi • Ravza • 24.4672°N 39.6111°E',
             icon: Icons.mosque_outlined,
-            gradient: const [Color(0xFF4A148C), Color(0xFF7B1FA2)],
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             riyadh: _riyadh,
             timeStr: _timeStr(_riyadh),
             dateStr: _dateStr(_riyadh),
