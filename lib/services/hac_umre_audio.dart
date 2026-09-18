@@ -21,7 +21,40 @@ const Map<String, HacUmreSes> hacUmreSesleri = {
   'umre_1': HacUmreSes(asset: 'audio/hac_umre/ihram.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/233.mp3', kaynak: 'Hisn al-Muslim 115 • Telbiye'),
   'umre_2': HacUmreSes(asset: 'audio/hac_umre/tavaf_baslangic.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/234.mp3', kaynak: 'Hisn al-Muslim 116 • Tekbir'),
   'umre_3': HacUmreSes(asset: 'audio/hac_umre/say.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/236.mp3', kaynak: 'Hisn al-Muslim 118 • Safa/Merve'),
+  // Ziyaret yerleri (orijinal sesler)
+  'ziyaret_kabe': HacUmreSes(asset: 'audio/hac_umre/tavaf_baslangic.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/234.mp3', kaynak: 'Hisn al-Muslim 116 • Tekbir'),
+  'ziyaret_hacerulesved': HacUmreSes(asset: 'audio/hac_umre/tavaf_baslangic.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/234.mp3', kaynak: 'Hisn al-Muslim 116 • Tekbir'),
+  'ziyaret_makam': HacUmreSes(asset: 'audio/hac_umre/makam.mp3', streamUrl: 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/132.mp3', kaynak: 'Bakara 125 • Alafasy'),
+  'ziyaret_zemzem': HacUmreSes(asset: 'audio/hac_umre/ilim.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/95.mp3', kaynak: 'Hisn al-Muslim • İlim duası'),
+  'ziyaret_safa_merve': HacUmreSes(asset: 'audio/hac_umre/say.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/236.mp3', kaynak: 'Hisn al-Muslim 118 • Safa/Merve'),
+  'ziyaret_arafat': HacUmreSes(asset: 'audio/hac_umre/arafat.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/237.mp3', kaynak: 'Hisn al-Muslim 119 • Arafat'),
+  'ziyaret_mina': HacUmreSes(asset: 'audio/hac_umre/mina.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/239.mp3', kaynak: 'Hisn al-Muslim 121 • Taşlama'),
+  'ziyaret_muzdelife': HacUmreSes(asset: 'audio/hac_umre/muzdelife.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/238.mp3', kaynak: 'Hisn al-Muslim 120 • Müzdelife'),
+  'ziyaret_mescidi_nebevi': HacUmreSes(asset: 'audio/hac_umre/mescid.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/20.mp3', kaynak: 'Hisn al-Muslim 13 • Mescid'),
+  'ziyaret_ravza': HacUmreSes(asset: 'audio/hac_umre/salavat.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/53.mp3', kaynak: 'Hisn al-Muslim 23 • Salavat'),
+  'ziyaret_kubbe_hadra': HacUmreSes(asset: 'audio/hac_umre/kabir.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/165.mp3', kaynak: 'Hisn al-Muslim 60 • Kabir ziyareti'),
+  'ziyaret_kuba': HacUmreSes(asset: 'audio/hac_umre/kuba.mp3', streamUrl: 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/1343.mp3', kaynak: 'Tevbe 108 • Alafasy'),
+  'ziyaret_uhud': HacUmreSes(asset: 'audio/hac_umre/kabir.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/165.mp3', kaynak: 'Hisn al-Muslim 60 • Kabir ziyareti'),
+  'ziyaret_kibleteyn': HacUmreSes(asset: 'audio/hac_umre/kibleteyn.mp3', streamUrl: 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/151.mp3', kaynak: 'Bakara 144 • Alafasy'),
+  // Günlük dualar (orijinal sesler)
+  'gunluk_sabah': HacUmreSes(asset: 'audio/hac_umre/sabah.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/89.mp3', kaynak: 'Hisn al-Muslim 27 • Sabah'),
+  'gunluk_aksam': HacUmreSes(asset: 'audio/hac_umre/sabah.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/89.mp3', kaynak: 'Hisn al-Muslim 27 • Sabah/Akşam'),
+  'gunluk_yemek': HacUmreSes(asset: 'audio/hac_umre/yemek.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/108.mp3', kaynak: 'Hisn al-Muslim • Yemek duası'),
+  'gunluk_yolculuk': HacUmreSes(asset: 'audio/hac_umre/yolculuk.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/207.mp3', kaynak: 'Hisn al-Muslim 96 • Yolculuk'),
+  'gunluk_uyku': HacUmreSes(asset: 'audio/hac_umre/uyku.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/105.mp3', kaynak: 'Hisn al-Muslim 28 • Uyku'),
+  'gunluk_sikinti': HacUmreSes(asset: 'audio/hac_umre/sikinti.mp3', streamUrl: 'http://www.hisnmuslim.com/audio/ar/124.mp3', kaynak: 'Hisn al-Muslim 35 • Sıkıntı'),
 };
+
+/// Günlük dua başlığı → ses anahtarı.
+String gunlukSesKey(String baslik) {
+  if (baslik.contains('Sabah')) return 'gunluk_sabah';
+  if (baslik.contains('Akşam')) return 'gunluk_aksam';
+  if (baslik.contains('Yemek')) return 'gunluk_yemek';
+  if (baslik.contains('Yolculuk')) return 'gunluk_yolculuk';
+  if (baslik.contains('Uyku')) return 'gunluk_uyku';
+  if (baslik.contains('Sıkıntı')) return 'gunluk_sikinti';
+  return 'gunluk_sabah';
+}
 
 class HacUmreAudioService {
   static final HacUmreAudioService _i = HacUmreAudioService._();

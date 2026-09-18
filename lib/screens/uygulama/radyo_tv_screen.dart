@@ -20,6 +20,7 @@ class _RadyoTvScreenState extends State<RadyoTvScreen> with SingleTickerProvider
   Kanal? _seciliTv;
   bool _radyoLoading = false;
   bool _radyoPlaying = false;
+  List<Kanal> _sonRadyolar = [];
   VideoPlayerController? _videoCtrl;
   bool _videoLoading = false;
   DateTime? _lastClick;
@@ -42,7 +43,7 @@ class _RadyoTvScreenState extends State<RadyoTvScreen> with SingleTickerProvider
     return true;
   }
 
-  Future<void> _playRadyo(Kanal k) async {
+  Future<void> _playRadyo(Kanal k, [List<Kanal>? liste]) async {
     if (!_canClick()) return;
     // Aynı kanal çalıyorsa durdur
     if (_radyoPlaying && _seciliRadyo?.link == k.link) {
@@ -50,18 +51,47 @@ class _RadyoTvScreenState extends State<RadyoTvScreen> with SingleTickerProvider
       setState(() => _radyoPlaying = false);
       return;
     }
-    setState(() { _seciliRadyo = k; _radyoLoading = true; });
-    try {
-      await _pauseTv();
-      await _audio.stop();
-      await _audio.setReleaseMode(ReleaseMode.stop);
-      await _audio.play(UrlSource(k.link));
-      setState(() { _radyoLoading = false; _radyoPlaying = true; });
-    } catch (e) {
-      setState(() { _radyoLoading = false; _radyoPlaying = false; });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Radyo açılamadı: $e')));
+    // Sıralı deneme: seçilen kanaldan başla, en fazla 5 kanal dene
+    final sirali = liste ?? [k];
+    int startIdx = sirali.indexWhere((e) => e.link == k.link);
+    if (startIdx < 0) startIdx = 0;
+    int deneme = 0;
+    for (int i = startIdx; i < sirali.length && deneme < 5; i++, deneme++) {
+      final kanal = sirali[i];
+      setState(() { _seciliRadyo = kanal; _radyoLoading = true; });
+      try {
+        await _pauseTv();
+        await _audio.stop();
+        await _audio.setReleaseMode(ReleaseMode.stop);
+        await _audio.play(UrlSource(kanal.link)).timeout(const Duration(seconds: 12));
+        setState(() { _radyoLoading = false; _radyoPlaying = true; });
+        if (deneme > 0 && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${kanal.ad} açıldı (${deneme + 1}. deneme)'), backgroundColor: AppTheme.primary, duration: const Duration(seconds: 2)));
+        }
+        return;
+      } catch (e) {
+        debugPrint('radyo deneme ${deneme + 1} ${kanal.ad} failed: $e');
+        continue;
+      }
     }
+    setState(() { _radyoLoading = false; _radyoPlaying = false; });
+    if (!mounted) return;
+    _showInternetDialog();
+  }
+
+  Future<void> _showInternetDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(children: [Icon(Icons.wifi_off_rounded, color: Colors.red), SizedBox(width: 8), Text('Radyo Açılamadı', style: TextStyle(fontSize: 16))]),
+        content: const Text('İNTERNET BAĞLANTINIZI KONTROL EDİNİZ.', style: TextStyle(fontSize: 13)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Kapat')),
+          FilledButton(onPressed: () => Navigator.pop(context), style: FilledButton.styleFrom(backgroundColor: AppTheme.primary), child: const Text('Tamam')),
+        ],
+      ),
+    );
   }
 
   Future<void> _stopRadyo() async {
@@ -101,6 +131,27 @@ class _RadyoTvScreenState extends State<RadyoTvScreen> with SingleTickerProvider
       await _videoCtrl?.pause();
     } catch (_) {}
     setState(() {});
+  }
+
+  Future<void> _closeTv() async {
+    try {
+      await _videoCtrl?.pause();
+      await _videoCtrl?.dispose();
+    } catch (_) {}
+    _videoCtrl = null;
+    setState(() => _seciliTv = null);
+  }
+
+  bool get _tvAcik => _videoCtrl != null && _videoCtrl!.value.isInitialized;
+
+  Future<void> _openFullscreen() async {
+    final ctrl = _videoCtrl;
+    if (ctrl == null || !ctrl.value.isInitialized) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => _TvFullscreen(kanal: _seciliTv, controller: ctrl)),
+    );
+    if (mounted) setState(() {});
   }
 
   @override
@@ -157,6 +208,7 @@ class _RadyoTvScreenState extends State<RadyoTvScreen> with SingleTickerProvider
                 final all = snap.data ?? [];
                 final radyolar = all.where((k) => k.kategori.toLowerCase() != 'tv').toList();
                 final tvler = all.where((k) => k.kategori.toLowerCase() == 'tv').toList();
+                _sonRadyolar = radyolar;
                 return TabBarView(
                   controller: _tab,
                   children: [
@@ -165,7 +217,7 @@ class _RadyoTvScreenState extends State<RadyoTvScreen> with SingleTickerProvider
                       seciliLink: _radyoPlaying ? _seciliRadyo?.link : null,
                       loadingLink: _radyoLoading ? _seciliRadyo?.link : null,
                       icon: Icons.radio_rounded,
-                      onTap: _playRadyo,
+                      onTap: (k, liste) => _playRadyo(k, liste),
                     ),
                     Column(
                       children: [
@@ -174,6 +226,8 @@ class _RadyoTvScreenState extends State<RadyoTvScreen> with SingleTickerProvider
                           loading: _videoLoading,
                           kanal: _seciliTv,
                           onStop: _stopTv,
+                          onClose: _closeTv,
+                          onFullscreen: _openFullscreen,
                         ),
                         Expanded(
                           child: _KanalListe(
@@ -181,7 +235,7 @@ class _RadyoTvScreenState extends State<RadyoTvScreen> with SingleTickerProvider
                             seciliLink: _seciliTv?.link,
                             loadingLink: _videoLoading ? _seciliTv?.link : null,
                             icon: Icons.live_tv_rounded,
-                            onTap: _playTv,
+                            onTap: (k, _) => _playTv(k),
                           ),
                         ),
                       ],
@@ -191,14 +245,15 @@ class _RadyoTvScreenState extends State<RadyoTvScreen> with SingleTickerProvider
               },
             ),
           ),
-          // PRO player widget (tasarıma uygun, uygulama içinde)
-          _ProPlayerBar(
-            radyo: _seciliRadyo,
-            playing: _radyoPlaying,
-            loading: _radyoLoading,
-            onPlayPause: _seciliRadyo == null ? null : () => _playRadyo(_seciliRadyo!),
-            onStop: _stopRadyo,
-          ),
+          // TV açıkken radyo barı kapanır
+          if (!_tvAcik)
+            _ProPlayerBar(
+              radyo: _seciliRadyo,
+              playing: _radyoPlaying,
+              loading: _radyoLoading,
+              onPlayPause: _seciliRadyo == null ? null : () => _playRadyo(_seciliRadyo!, _sonRadyolar),
+              onStop: _stopRadyo,
+            ),
         ],
       ),
     );
@@ -210,7 +265,7 @@ class _KanalListe extends StatelessWidget {
   final String? seciliLink;
   final String? loadingLink;
   final IconData icon;
-  final ValueChanged<Kanal> onTap;
+  final void Function(Kanal, List<Kanal>) onTap;
   const _KanalListe({required this.kanallar, required this.seciliLink, required this.loadingLink, required this.icon, required this.onTap});
 
   @override
@@ -225,7 +280,7 @@ class _KanalListe extends StatelessWidget {
         final sel = seciliLink == k.link;
         final loading = loadingLink == k.link;
         return InkWell(
-          onTap: () => onTap(k),
+          onTap: () => onTap(k, kanallar),
           borderRadius: BorderRadius.circular(14),
           child: Container(
             padding: const EdgeInsets.all(12),
@@ -259,7 +314,9 @@ class _TvPlayer extends StatelessWidget {
   final bool loading;
   final Kanal? kanal;
   final VoidCallback onStop;
-  const _TvPlayer({required this.controller, required this.loading, required this.kanal, required this.onStop});
+  final VoidCallback onClose;
+  final VoidCallback onFullscreen;
+  const _TvPlayer({required this.controller, required this.loading, required this.kanal, required this.onStop, required this.onClose, required this.onFullscreen});
 
   Widget _buildTvBody() {
     if (loading) {
@@ -275,7 +332,8 @@ class _TvPlayer extends StatelessWidget {
       );
     }
     final c = controller;
-    if (c != null && c.value.isInitialized) return VideoPlayer(c);
+    // Gerçek en-boy oranıyla doğru dolgu (siyah barlar yerine çerçeveye tam oturur)
+    if (c != null && c.value.isInitialized) return FittedBox(fit: BoxFit.contain, child: SizedBox(width: c.value.size.width == 0 ? 640 : c.value.size.width, height: c.value.size.height == 0 ? 360 : c.value.size.height, child: VideoPlayer(c)));
     return const Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -310,14 +368,18 @@ class _TvPlayer extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Expanded(child: Text(kanal?.ad ?? 'TV seçilmedi — listeden seç', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12))),
+              if (kanal != null && controller != null && controller!.value.isInitialized) InkWell(onTap: onFullscreen, child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white), SizedBox(width: 2), Text('Tam Ekran', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700))])),
+              if (kanal != null) const SizedBox(width: 8),
               if (kanal != null) InkWell(onTap: onStop, child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.stop_rounded, size: 14, color: Colors.white), SizedBox(width: 2), Text('Durdur', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700))])),
+              if (kanal != null) const SizedBox(width: 4),
+              if (kanal != null) InkWell(onTap: onClose, child: const Icon(Icons.close_rounded, size: 16, color: Colors.white70)),
             ],
           ),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: AspectRatio(
-              aspectRatio: 16 / 9,
+              aspectRatio: (controller != null && controller!.value.isInitialized && controller!.value.aspectRatio > 0) ? controller!.value.aspectRatio : 16 / 9,
               child: Container(
                 color: Colors.black,
                 child: _buildTvBody(),
@@ -325,6 +387,36 @@ class _TvPlayer extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TvFullscreen extends StatefulWidget {
+  final Kanal? kanal;
+  final VideoPlayerController controller;
+  const _TvFullscreen({required this.kanal, required this.controller});
+  @override
+  State<_TvFullscreen> createState() => _TvFullscreenState();
+}
+
+class _TvFullscreenState extends State<_TvFullscreen> {
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.controller;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(backgroundColor: Colors.black, foregroundColor: Colors.white, title: Text(widget.kanal?.ad ?? 'Canlı Yayın', style: const TextStyle(fontSize: 14))),
+      body: Center(
+        child: c.value.isInitialized
+            ? AspectRatio(aspectRatio: c.value.aspectRatio > 0 ? c.value.aspectRatio : 16 / 9, child: VideoPlayer(c))
+            : const CircularProgressIndicator(color: Colors.white),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppTheme.primary,
+        foregroundColor: Colors.white,
+        onPressed: () => setState(() => c.value.isPlaying ? c.pause() : c.play()),
+        child: Icon(c.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
       ),
     );
   }

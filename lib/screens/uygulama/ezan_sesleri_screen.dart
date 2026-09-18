@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_theme.dart';
 import '../../services/ezan_ses_service.dart';
 import '../../services/bildirim_service.dart';
@@ -17,11 +18,13 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
   final Map<String, bool> _downloaded = {};
   Set<String> _playing = {};
   bool _bildirimAcik = false;
+  String? _bildirimSesId;
 
   @override
   void initState() {
     super.initState();
     _loadDownloaded();
+    _loadBildirimState();
     _bildirim.init();
   }
 
@@ -30,6 +33,20 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
       final ok = await _ses.isDownloaded(f['id']!);
       if (mounted) setState(() => _downloaded[f['id']!] = ok);
     }
+  }
+
+  Future<void> _loadBildirimState() async {
+    final p = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _bildirimAcik = p.getBool('ezan_bildirim_acik') ?? false;
+      _bildirimSesId = p.getString('ezan_bildirim_id');
+    });
+  }
+
+  Future<void> _saveBildirim(bool v) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool('ezan_bildirim_acik', v);
   }
 
   Future<void> _indirme(String id, String name) async {
@@ -45,7 +62,7 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
         _downloaded[id] = true;
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$name hazır • Offline çalınabilir ✓'), backgroundColor: AppTheme.primary));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$name hazır ✓'), backgroundColor: AppTheme.primary));
     } catch (e) {
       setState(() => _prog.remove(id));
       if (!mounted) return;
@@ -53,7 +70,7 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
     }
   }
 
-  Future<void> _cal(String id, String name) async {
+  Future<void> _ondinleme(String id, String name) async {
     if (!_ses.canClick()) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tıklama koruması: bekleyin'), duration: Duration(milliseconds: 600)));
       return;
@@ -62,13 +79,57 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
       setState(() => _playing = {id});
       await _ses.play(id, name);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$name çalıyor... • Dinleme kaydedildi'), backgroundColor: AppTheme.primary, duration: const Duration(seconds: 1)));
-      // 3 sn sonra playing temizle
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$name • Öndinleme'), backgroundColor: AppTheme.primary, duration: const Duration(seconds: 1)));
       Future.delayed(const Duration(seconds: 3), () => mounted ? setState(() => _playing = {}) : null);
     } catch (e) {
       setState(() => _playing = {});
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Çalma hatası: $e')));
+    }
+  }
+
+  Future<void> _bildirimSesiYap(String id, String name) async {
+    // Seçilen ses indirilmemişse önce indir
+    if (!(_downloaded[id] ?? false)) {
+      await _indirme(id, name);
+      if (!(_downloaded[id] ?? false)) return;
+    }
+    final p = await SharedPreferences.getInstance();
+    await p.setString('ezan_bildirim_id', id);
+    await p.setString('ezan_bildirim_ad', name);
+    setState(() => _bildirimSesId = id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$name • Bildirim sesi yapıldı ✓'), backgroundColor: AppTheme.primary));
+  }
+
+  Future<void> _toggleBildirim(bool v) async {
+    if (v) {
+      // Önce test bildirimi (çevrimdışı da çalışır) — switch hemen tepki verir
+      try {
+        await _bildirim.showTestBildirim(sehir: 'Mekke');
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Bildirim izni gerekli: $e')));
+        return;
+      }
+      setState(() => _bildirimAcik = true);
+      await _saveBildirim(true);
+      if (!mounted) return;
+      final sesAd = _bildirimSesId == null ? null : ezanDriveFiles.firstWhere((f) => f['id'] == _bildirimSesId, orElse: () => const {'name': ''})['name'];
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Bildirim açık ✓${sesAd != null && sesAd.isNotEmpty ? ' • Ses: $sesAd' : ''}'), backgroundColor: AppTheme.primary));
+      // Vakit planlaması en iyi gayretle (internet gerekli)
+      try {
+        final vakit = await EzanVaktiService().fetchBugun(16309);
+        await _bildirim.scheduleVakitBildirimleri(vakit, 'Mekke');
+      } catch (e) {
+        debugPrint('Vakit planlama hatası: $e');
+      }
+    } else {
+      await _bildirim.cancelAll();
+      await _saveBildirim(false);
+      setState(() => _bildirimAcik = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bildirim kapatıldı')));
     }
   }
 
@@ -87,32 +148,28 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
               children: [
                 const Row(children: [Icon(Icons.notifications_active_rounded, size: 16, color: AppTheme.goldDark), SizedBox(width: 6), Text('Bildirim', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppTheme.goldDark))]),
                 const SizedBox(height: 6),
-                  Row(
+                Row(
                   children: [
-                    Expanded(child: Text('Ezan vakitlerinde bildirim al (Mekke/Medine)', style: TextStyle(fontSize: 11, color: Colors.grey.shade800))),
-                    Switch(value: _bildirimAcik, activeThumbColor: AppTheme.primary, onChanged: (v) async {
-                      setState(() => _bildirimAcik = v);
-                      if (v) {
-                        try {
-                          final vakit = await EzanVaktiService().fetchBugun(16309);
-                          await _bildirim.scheduleVakitBildirimleri(vakit, 'Mekke');
-                          await _bildirim.showTestBildirim(sehir: 'Mekke');
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vakit bildirimleri planlandı • ${vakit.miladiUzun} 6 vakit • Zamanında gelecek'), backgroundColor: AppTheme.primary));
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Planlama hatası: $e')));
-                          setState(() => _bildirimAcik = false);
-                        }
-                      } else {
-                        await _bildirim.cancelAll();
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tüm vakit bildirimleri iptal edildi')));
-                      }
-                    }),
+                    const Expanded(child: Text('Ezan vakitlerinde bildirim al (Mekke/Medine)', style: TextStyle(fontSize: 11))),
+                    Switch(value: _bildirimAcik, activeThumbColor: AppTheme.primary, onChanged: _toggleBildirim),
                   ],
                 ),
-                Text('Drive 9 ses • İndirmeli offline • Tıklama koruması (800ms) • Dinleme geçmişi kaydedilir', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                if (_bildirimSesId != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.gold.withValues(alpha: 0.4))),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.notifications_rounded, size: 12, color: AppTheme.goldDark),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Bildirim sesi: ${ezanDriveFiles.firstWhere((f) => f['id'] == _bildirimSesId, orElse: () => const {'name': ''})['name']}',
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.goldDark),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
@@ -123,6 +180,7 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
             final dl = _downloaded[id] ?? false;
             final prog = _prog[id];
             final playing = _playing.contains(id);
+            final isBildirimSesi = _bildirimSesId == id;
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(12),
@@ -133,53 +191,48 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
                     children: [
                       Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: dl ? AppTheme.primaryLight : Colors.grey.shade100, borderRadius: BorderRadius.circular(10)), child: Icon(dl ? Icons.offline_pin_rounded : Icons.cloud_download_rounded, size: 18, color: dl ? AppTheme.primary : Colors.grey)),
                       const SizedBox(width: 10),
-                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)), Text(prog != null ? '${(prog * 100).toInt()}% indiriliyor...' : (dl ? 'Offline • Hazır ✓' : 'Çevrimdışı için dokunun'), style: TextStyle(fontSize: 11, color: dl ? AppTheme.primary : Colors.grey.shade600)), Text('ID: ${id.substring(0, 8)}...', style: TextStyle(fontSize: 9, color: Colors.grey.shade400))])),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                            if (prog != null)
+                              Text('${(prog * 100).toInt()}%', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w700))
+                            else if (dl)
+                              const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.check_circle_rounded, size: 12, color: Colors.green), SizedBox(width: 4), Text('Hazır', style: TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600))]),
+                            if (isBildirimSesi)
+                              Container(
+                                margin: const EdgeInsets.only(top: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(color: AppTheme.goldLight, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.gold.withValues(alpha: 0.4))),
+                                child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.notifications_rounded, size: 10, color: AppTheme.goldDark), SizedBox(width: 3), Text('Bildirim sesi', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.goldDark))]),
+                              ),
+                          ],
+                        ),
+                      ),
                       if (prog != null)
-                        SizedBox(width: 60, height: 60, child: Stack(alignment: Alignment.center, children: [CircularProgressIndicator(value: prog, strokeWidth: 3, color: AppTheme.primary), Text('${(prog * 100).toInt()}%', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700))])),
+                        SizedBox(width: 44, height: 44, child: Stack(alignment: Alignment.center, children: [CircularProgressIndicator(value: prog, strokeWidth: 3, color: AppTheme.primary), Text('${(prog * 100).toInt()}', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700))])),
                       if (prog == null) ...[
-                        IconButton(icon: Icon(playing ? Icons.pause_circle_rounded : Icons.play_circle_rounded, color: AppTheme.primary, size: 30), onPressed: () => _cal(id, name)),
+                        IconButton(icon: Icon(playing ? Icons.pause_circle_rounded : Icons.play_circle_rounded, color: AppTheme.primary, size: 30), onPressed: () => _ondinleme(id, name), tooltip: 'Öndinleme'),
+                        IconButton(
+                          icon: Icon(isBildirimSesi ? Icons.notifications_rounded : Icons.notifications_outlined, color: isBildirimSesi ? AppTheme.goldDark : Colors.grey, size: 22),
+                          onPressed: () => _bildirimSesiYap(id, name),
+                          tooltip: 'Bildirim sesi yap',
+                        ),
                         IconButton(
                           icon: Icon(dl ? Icons.check_circle_rounded : Icons.download_rounded, color: dl ? Colors.green : AppTheme.goldDark, size: 22),
                           onPressed: dl ? null : () => _indirme(id, name),
-                          tooltip: dl ? 'İndirildi' : 'İndir (offline)',
+                          tooltip: dl ? 'İndirildi' : 'İndir',
                         ),
                       ],
                     ],
                   ),
                   if (playing)
-                    Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(10)), child: Row(children: [const Icon(Icons.graphic_eq_rounded, size: 14, color: AppTheme.primary), const SizedBox(width: 6), Expanded(child: Text('$name • Tıklama koruması aktif • Dinleme kaydediliyor', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w600))), InkWell(onTap: () async { await _ses.stop(); setState(() => _playing = {}); }, child: const Text('Durdur', style: TextStyle(fontSize: 11, color: Colors.red, fontWeight: FontWeight.w700)))])),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: FutureBuilder<int>(future: _ses.getCount(id), builder: (c, s) => Text('Dinlenme: ${s.data ?? 0}', style: TextStyle(fontSize: 10, color: Colors.grey.shade600))),
-                  ),
+                    Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(10)), child: Row(children: [const Icon(Icons.graphic_eq_rounded, size: 14, color: AppTheme.primary), const SizedBox(width: 6), Expanded(child: Text('$name • Öndinleme', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w600))), InkWell(onTap: () async { await _ses.stop(); setState(() => _playing = {}); }, child: const Text('Durdur', style: TextStyle(fontSize: 11, color: Colors.red, fontWeight: FontWeight.w700)))])),
                 ],
               ),
             );
           }),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Dinleme Geçmişi (son 10)', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
-                const SizedBox(height: 8),
-                FutureBuilder<List<String>>(future: _ses.getHistory(), builder: (c, s) {
-                  final h = s.data ?? [];
-                  if (h.isEmpty) return Text('Henüz dinleme yok', style: TextStyle(fontSize: 11, color: Colors.grey.shade600));
-                  return Column(children: h.take(10).map((e) {
-                    final parts = e.split('|');
-                    final ts = parts.isNotEmpty ? parts[0] : '';
-                    final name = parts.length > 2 ? parts[2] : parts.last;
-                    return Padding(padding: const EdgeInsets.only(bottom: 4), child: Row(children: [const Icon(Icons.history_rounded, size: 12, color: Colors.grey), const SizedBox(width: 6), Expanded(child: Text('$name • ${ts.substring(0, 19).replaceAll('T', ' ')}', style: const TextStyle(fontSize: 10)))]));
-                  }).toList());
-                }),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text('Kaynak: 9 Drive dosyası • İndirmeli offline çalma • Tıklama koruması 800ms • Her dinleme SharedPreferences ile kaydedilir', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
         ],
       ),
     );

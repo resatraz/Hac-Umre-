@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../zikirmatik_screen.dart';
 import '../takvim_screen.dart';
@@ -46,7 +46,7 @@ class UygulamaKlasoruScreen extends StatelessWidget {
           ),
           _FolderCard(
             title: 'Günlük Dualar',
-            subtitle: 'Sabah/Akşam • TTS • Kopyala',
+            subtitle: 'Sabah/Akşam • Orijinal ses • Kopyala',
             icon: Icons.menu_book_rounded,
             gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GunlukDualarScreen())),
@@ -74,14 +74,14 @@ class UygulamaKlasoruScreen extends StatelessWidget {
           ),
           _FolderCard(
             title: 'Dualar',
-            subtitle: 'API (126+1001) • TTS sesli • Offline',
+            subtitle: 'API (126+1001) • Orijinal ses • Offline',
             icon: Icons.menu_book_rounded,
             gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DualarScreen())),
           ),
           _FolderCard(
             title: 'Ezan Sesleri',
-            subtitle: '9 Drive ses • İndirmeli • Bildirim • Tıklama koruması',
+            subtitle: 'Öndinleme • Bildirim sesi • 9 ses',
             icon: Icons.music_note_rounded,
             gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EzanSesleriScreen())),

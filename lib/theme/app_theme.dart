@@ -10,6 +10,13 @@ class AppTheme {
   static const goldDark = Color(0xFF8D6E1F);
   static const surface = Color(0xFFF9FAF7);
   static const cardBg = Colors.white;
+  // Asset Arapça font (offline okunurluk) — assets/fonts/Amiri
+  static const arabicFont = 'Amiri';
+
+  /// Arapça metin stili (asset font, offline).
+  static TextStyle arabic({double size = 20, Color color = primaryDark, FontWeight weight = FontWeight.w600, double height = 1.9}) {
+    return TextStyle(fontFamily: arabicFont, fontSize: size, height: height, color: color, fontWeight: weight);
+  }
   // PRO palette
   static const proGradientStart = Color(0xFF0D5C3D);
   static const proGradientEnd = Color(0xFF1A8A5A);
@@ -32,7 +39,8 @@ class AppTheme {
       elevation: 0,
       centerTitle: true,
       scrolledUnderElevation: 0,
-      titleTextStyle: GoogleFonts.amiri(
+      titleTextStyle: const TextStyle(
+        fontFamily: arabicFont,
         fontSize: 20,
         fontWeight: FontWeight.w700,
         color: Colors.white,
@@ -40,7 +48,7 @@ class AppTheme {
       iconTheme: const IconThemeData(color: Colors.white),
     ),
     textTheme: TextTheme(
-      displayLarge: GoogleFonts.amiri(fontSize: 28, fontWeight: FontWeight.w700, color: primaryDark),
+      displayLarge: const TextStyle(fontFamily: arabicFont, fontSize: 28, fontWeight: FontWeight.w700, color: primaryDark),
       titleLarge: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: primaryDark),
       titleMedium: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: primaryDark),
       bodyLarge: GoogleFonts.inter(fontSize: 15, height: 1.6, color: const Color(0xFF2D3A36)),

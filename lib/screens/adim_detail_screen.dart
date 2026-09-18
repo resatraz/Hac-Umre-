@@ -236,7 +236,7 @@ class _AdimDetailScreenState extends State<AdimDetailScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(12)),
-                      child: Text(a.duaArapca, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, height: 1.8, color: AppTheme.primaryDark, fontWeight: FontWeight.w600)),
+                      child: Text(a.duaArapca, textAlign: TextAlign.center, style: AppTheme.arabic(size: 20)),
                     )
                   else ...[
                     Container(

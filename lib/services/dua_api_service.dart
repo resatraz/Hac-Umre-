@@ -7,6 +7,7 @@ class ApiDua {
   final String id;
   final String category;
   final String title;
+  final String titleTr;
   final String arabic;
   final String transliteration;
   final String translation;
@@ -19,6 +20,7 @@ class ApiDua {
     required this.id,
     required this.category,
     required this.title,
+    this.titleTr = '',
     required this.arabic,
     required this.transliteration,
     required this.translation,
@@ -67,6 +69,7 @@ class ApiDua {
         'id': id,
         'category': category,
         'title': title,
+        'titleTr': titleTr,
         'arabic': arabic,
         'transliteration': transliteration,
         'translation': translation,
@@ -80,6 +83,7 @@ class ApiDua {
         id: j['id'] ?? '',
         category: j['category'] ?? 'genel',
         title: j['title'] ?? '',
+        titleTr: j['titleTr'] ?? '',
         arabic: j['arabic'] ?? '',
         transliteration: j['transliteration'] ?? '',
         translation: j['translation'] ?? '',
@@ -88,6 +92,76 @@ class ApiDua {
         audioUrl: j['audioUrl'],
         repeat: j['repeat'] ?? 1,
       );
+}
+
+/// Kategori id → Türkçe ad (kullanışlı çipler için).
+String kategoriTr(String id) {
+  const map = {
+    'Tümü': 'Tümü',
+    'morning': 'Sabah',
+    'evening': 'Akşam',
+    'wudu': 'Abdest',
+    'prayer': 'Namaz',
+    'after_prayer': 'Namaz Sonrası',
+    'sleep': 'Uyku',
+    'food': 'Yemek',
+    'travel': 'Yolculuk',
+    'home': 'Ev',
+    'masjid': 'Cami',
+    'distress': 'Sıkıntı',
+    'forgiveness': 'Bağışlanma',
+    'illness': 'Şifa',
+    'weather': 'Hava',
+    'knowledge': 'İlim',
+    'parents': 'Anne-Baba',
+    'guidance': 'Hidayet',
+    'gratitude': 'Şükür',
+    'protection': 'Korunma',
+    'dhikr': 'Zikir',
+    'marriage': 'Evlilik',
+    'hajj': 'Hac & Umre',
+    'grief': 'Hüzün',
+    'children': 'Çocuklar',
+    'business': 'Rızık',
+    'night_prayer': 'Gece Namazı',
+    'quran_recitation': 'Kur\'an',
+    'masnun': 'Mesnun',
+    'hisn': 'Hisnü\'l-Müslim',
+    'genel': 'Genel',
+  };
+  return map[id] ?? id.replaceAll('_', ' ');
+}
+
+/// Arapça harekeleri/küçük farkları temizleyip eşleşme anahtarı üretir.
+String normalizeArabic(String s) {
+  var t = s;
+  // Tashkeel + tatweel temizle
+  t = t.replaceAll(RegExp('[\u064B-\u065F\u0670\u0640]'), '');
+  // Elif varyantları
+  t = t.replaceAll(RegExp('[أإآ]'), 'ا');
+  // Boşlukları sıkıştır
+  t = t.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (t.length > 60) t = t.substring(0, 60);
+  return t;
+}
+
+/// İngilizce transliterasyonu Türkçe okunuşa yaklaştırır (yaklaşık).
+String trOkunus(String en) {
+  var t = en;
+  const map = {
+    'sh': 'ş', 'Sh': 'Ş', 'SH': 'Ş',
+    'ch': 'ç', 'Ch': 'Ç',
+    'th': 's', 'Th': 'S',
+    'dh': 'z', 'Dh': 'Z',
+    'gh': 'ğ', 'Gh': 'Ğ',
+    'kh': 'h', 'Kh': 'H',
+    'zh': 'j', 'Zh': 'J',
+    'aa': 'a', 'ee': 'i', 'oo': 'u', 'uu': 'u',
+    'Aa': 'A', 'Ee': 'İ',
+    "'": '', '’': '', '`': '',
+  };
+  map.forEach((k, v) => t = t.replaceAll(k, v));
+  return t;
 }
 
 class DuaApiService {
@@ -191,32 +265,32 @@ class DuaApiService {
       lastError = 'Ummah: $e';
       debugPrint(lastError);
     }
-    // Masnun TR ile Türkçe anlamları doldur (id eşleşmesi)
+    // Masnun TR ile Türkçe anlamları doldur (Arapça metin eşleşmesi — id'ler farklı)
     try {
-      final masnun = await fetchFromMasnunTr(limit: 60);
-      final byId = {for (final m in masnun) m.id: m};
-      ummah = ummah.map((u) {
-        final m = byId[u.id];
-        if (m != null && m.translationTr.isNotEmpty) {
-          return ApiDua(
-            id: u.id,
-            category: u.category,
-            title: u.title,
-            arabic: u.arabic.isNotEmpty ? u.arabic : m.arabic,
-            transliteration: u.transliteration,
-            translation: u.translation,
-            translationTr: m.translationTr,
-            source: u.source,
-            audioUrl: u.audioUrl ?? m.audioUrl,
-            repeat: u.repeat,
-          );
-        }
-        return u;
-      }).toList();
-      // Masnun'a özel ek duaları da ekle (ilk 20)
-      for (final m in masnun.take(20)) {
-        if (!ummah.any((u) => u.id == m.id)) ummah.add(m);
+      final masnun = await fetchFromMasnunTr(limit: 100);
+      final byArabic = <String, ApiDua>{};
+      for (final m in masnun) {
+        if (m.arabic.isEmpty || m.translationTr.isEmpty) continue;
+        byArabic.putIfAbsent(normalizeArabic(m.arabic), () => m);
       }
+      ummah = ummah.map((u) {
+        if (u.translationTr.isNotEmpty) return u;
+        final m = u.arabic.isEmpty ? null : byArabic[normalizeArabic(u.arabic)];
+        if (m == null) return u;
+        return ApiDua(
+          id: u.id,
+          category: u.category,
+          title: u.title,
+          titleTr: m.title,
+          arabic: u.arabic,
+          transliteration: u.transliteration,
+          translation: u.translation,
+          translationTr: m.translationTr,
+          source: u.source,
+          audioUrl: u.audioUrl ?? m.audioUrl,
+          repeat: u.repeat,
+        );
+      }).toList();
     } catch (e) {
       debugPrint('Masnun merge: $e');
     }

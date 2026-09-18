@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:http/http.dart' as http;
 
 class QuranAyah {
@@ -76,12 +77,24 @@ class QuranApiService {
     throw last ?? Exception('Ağ hatası');
   }
 
+  /// Web'de CORS engeline takılmamak için proxy yedeğiyle GET.
+  Future<http.Response> _get(Uri uri, {Duration timeout = const Duration(seconds: 30)}) async {
+    try {
+      return await http.get(uri, headers: _headers).timeout(timeout);
+    } catch (e) {
+      if (!kIsWeb) rethrow;
+      debugPrint('direct failed, proxy fallback $e');
+      final proxy = Uri.parse('https://api.allorigins.win/raw?url=${Uri.encodeComponent(uri.toString())}');
+      return await http.get(proxy, headers: const {'Accept': 'application/json'}).timeout(timeout);
+    }
+  }
+
   // Not: Proje içinde Cüz için ayrı API yok — hepsi Sure tabanlı, harici olarak cüz destekler.
   // Burada /juz/{num}/{edition} kullanıyoruz (alquran.cloud harici cüz desteği).
   Future<List<QuranAyah>> fetchJuz(int juzNumber, String edition) async {
     final clamped = juzNumber.clamp(1, 30);
     final uri = Uri.parse('$_base/juz/$clamped/$edition');
-    final res = await _withRetry(() => http.get(uri, headers: _headers).timeout(const Duration(seconds: 30)));
+    final res = await _withRetry(() => _get(uri));
     if (res.statusCode != 200) throw Exception('Juz $clamped ${res.statusCode}');
     final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
     final data = body['data'];
@@ -103,7 +116,7 @@ class QuranApiService {
 
   Future<List<QuranAyah>> fetchSurah(int surahNumber, String edition) async {
     final uri = Uri.parse('$_base/surah/$surahNumber/$edition');
-    final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 12));
+    final res = await _withRetry(() => _get(uri, timeout: const Duration(seconds: 15)));
     if (res.statusCode != 200) throw Exception('Sure $surahNumber ${res.statusCode}');
     final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
     final List ayahs = body['data']?['ayahs'] ?? [];
@@ -112,7 +125,7 @@ class QuranApiService {
 
   Future<List<Map<String, dynamic>>> fetchSurahList() async {
     final uri = Uri.parse('$_base/surah');
-    final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 12));
+    final res = await _withRetry(() => _get(uri, timeout: const Duration(seconds: 15)));
     if (res.statusCode != 200) throw Exception('Surah list ${res.statusCode}');
     final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
     final List data = body['data'] ?? [];

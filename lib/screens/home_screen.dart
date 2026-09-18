@@ -28,7 +28,7 @@ class HomeScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 220,
+            expandedHeight: 148,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
@@ -41,14 +41,14 @@ class HomeScreen extends StatelessWidget {
                 ),
                   child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Row(
                           children: [
-                            Expanded(child: Text('app.title'.tr(), style: Theme.of(context).textTheme.displayLarge?.copyWith(color: Colors.white, height: 1.1))),
+                            Expanded(child: Text('app.title'.tr(), style: Theme.of(context).textTheme.displayLarge?.copyWith(color: Colors.white, height: 1.0, fontSize: 24))),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(gradient: AppTheme.goldGradient, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 6)]),
@@ -56,8 +56,8 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
-                        Text('app.subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                        const SizedBox(height: 4),
+                        Text('app.subtitle'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70, fontSize: 12)),
                       ],
                     ),
                   ),

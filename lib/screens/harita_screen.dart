@@ -101,12 +101,10 @@ class _GercekHaritaState extends State<_GercekHarita> {
   }
 
   Future<void> _yolTarifi(ZiyaretYeri yer) async {
-    final googleUrl = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${yer.lat},${yer.lng}');
-    final appleUrl = Uri.parse('https://maps.apple.com/?daddr=${yer.lat},${yer.lng}');
-    if (await canLaunchUrl(googleUrl)) {
-      await launchUrl(googleUrl, mode: LaunchMode.externalApplication);
-    } else if (await canLaunchUrl(appleUrl)) {
-      await launchUrl(appleUrl);
+    // Yandex Maps/Navigasyon ile yol tarifi
+    final yandexUrl = Uri.parse('https://yandex.com.tr/maps/?rtext=~${yer.lat},${yer.lng}');
+    if (await canLaunchUrl(yandexUrl)) {
+      await launchUrl(yandexUrl, mode: LaunchMode.externalApplication);
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${yer.ad} • ${yer.lat}, ${yer.lng}')));

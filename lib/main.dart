@@ -2,9 +2,24 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'services/bildirim_service.dart';
+import 'services/ezan_ses_service.dart';
+
+/// Bildirime dokununca seçili ezan sesini çal.
+Future<void> _bildirimSesCal() async {
+  try {
+    final p = await SharedPreferences.getInstance();
+    final id = p.getString('ezan_bildirim_id');
+    if (id == null) return;
+    final name = p.getString('ezan_bildirim_ad') ?? 'Bildirim';
+    await EzanSesService().play(id, name);
+  } catch (e) {
+    debugPrint('Bildirim sesi hatası: $e');
+  }
+}
 
 Future<void> main() async {
   await runZonedGuarded(() async {
@@ -32,7 +47,7 @@ Future<void> main() async {
     // Bildirim servisi ilk kareden SONRA - açılış animasyonunu engellemesin, kesinlikle önce animasyon
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        await BildirimService().init();
+        await BildirimService().init(onTap: (_) => _bildirimSesCal());
       } catch (e) {
         debugPrint('Bildirim init hatası: $e');
       }

@@ -15,7 +15,6 @@ dependencies:
   google_fonts: ^6.2.1
   shared_preferences: ^2.3.2
   audioplayers: ^6.0.0
-  flutter_tts: ^4.2.2
   flutter_map: ^8.2.1
   latlong2: ^0.9.1
   url_launcher: ^6.3.1
@@ -39,3 +38,9 @@ flutter:
     - assets/translations/
     - assets/images/
     - assets/audio/hac_umre/
+  fonts:
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf
+        - asset: assets/fonts/Amiri-Bold.ttf
+          weight: 700

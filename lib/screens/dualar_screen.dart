@@ -1,10 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../theme/app_theme.dart';
-import '../services/audio_service.dart';
 import '../services/dua_api_service.dart';
 import '../services/diyanet_service.dart';
 
@@ -20,18 +18,15 @@ class _DualarScreenState extends State<DualarScreen> {
   String filter = 'Tümü';
   String search = '';
   String? playingId;
-  final _audio = AppAudioService();
   final _api = DuaApiService();
   final _diyanet = DiyanetService();
   late Future<List<ApiDua>> _future;
   List<String> apiKategoriler = [];
-  bool _diyanetTestOk = false;
 
   @override
   void initState() {
     super.initState();
     if (widget.initialKategori != null) filter = widget.initialKategori!;
-    _audio.init();
     _future = _loadApi();
     _loadCategories();
     _testApis();
@@ -41,11 +36,9 @@ class _DualarScreenState extends State<DualarScreen> {
     // Gerekli ise Diyanet test — sonucu logla, UI engelleme
     try {
       final list = await _diyanet.fetchSureList().timeout(const Duration(seconds: 8));
-      if (mounted) setState(() => _diyanetTestOk = list.isNotEmpty);
       debugPrint('Diyanet sure list ok ${list.length}');
     } catch (e) {
       debugPrint('Diyanet test failed $e');
-      if (mounted) setState(() => _diyanetTestOk = false);
     }
   }
 
@@ -65,51 +58,37 @@ class _DualarScreenState extends State<DualarScreen> {
   }
 
   final _apiPlayer = AudioPlayer();
-  bool _apiAudioPlaying = false;
 
   Future<void> _togglePlayApi(ApiDua d) async {
     final id = d.id;
     if (playingId == id) {
       await _apiPlayer.stop();
-      await _audio.stop();
-      setState(() { playingId = null; _apiAudioPlaying = false; });
+      setState(() { playingId = null; });
       return;
     }
-    setState(() { playingId = id; _apiAudioPlaying = false; });
-    // Önce API sesi varsa onu çal (çok daha iyi), yoksa TTS
     final url = d.audioUrl;
-    if (url != null && url.isNotEmpty && (url.startsWith('http'))) {
-      try {
-        await _audio.stop();
-        await _apiPlayer.stop();
-        await _apiPlayer.setReleaseMode(ReleaseMode.stop);
-        await _apiPlayer.play(UrlSource(url));
-        setState(() => _apiAudioPlaying = true);
-        _apiPlayer.onPlayerComplete.first.then((_) {
-          if (mounted) setState(() { playingId = null; _apiAudioPlaying = false; });
-        });
-        return;
-      } catch (e) {
-        debugPrint('API audio failed $e, fallback TTS');
-      }
+    if (url == null || url.isEmpty || !url.startsWith('http')) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bu dua için orijinal ses API\'de henüz yok • İndirilip asset yapılacak')));
+      return;
     }
-    final ok = await _audio.speak(
-      id: id,
-      arapca: d.arabic,
-      okunus: d.transliteration,
-      onDone: () {
-        if (mounted) setState(() { playingId = null; _apiAudioPlaying = false; });
-      },
-    );
-    if (!ok && mounted) {
-      setState(() { playingId = null; _apiAudioPlaying = false; });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ses çalınamadı')));
+    setState(() { playingId = id; });
+    try {
+      await _apiPlayer.stop();
+      await _apiPlayer.setReleaseMode(ReleaseMode.stop);
+      await _apiPlayer.play(UrlSource(url));
+      _apiPlayer.onPlayerComplete.first.then((_) {
+        if (mounted) setState(() { playingId = null; });
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() { playingId = null; });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ses çalınamadı: $e')));
+      }
     }
   }
 
   @override
   void dispose() {
-    _audio.stop();
     _apiPlayer.dispose();
     super.dispose();
   }
@@ -131,10 +110,7 @@ class _DualarScreenState extends State<DualarScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.cloud_done_rounded, size: 14, color: AppTheme.primary),
-                    const SizedBox(width: 6),
-                    Expanded(child: Text('Sadece API • UmmahAPI 126 + Masnun TR 1001 + Hisn • ${_diyanetTestOk ? "Diyanet ✓" : "Diyanet test..."}', style: TextStyle(fontSize: 10, color: Colors.grey.shade700, fontWeight: FontWeight.w600))),
-                    const SizedBox(width: 8),
+                    const Spacer(),
                     SegmentedButton<bool>(
                       segments: const [ButtonSegment(value: true, label: Text('Arapça', style: TextStyle(fontSize: 11))), ButtonSegment(value: false, label: Text('Anlam', style: TextStyle(fontSize: 11)))],
                       selected: {showArapca},
@@ -146,7 +122,7 @@ class _DualarScreenState extends State<DualarScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   decoration: InputDecoration(
-                    hintText: 'API dualarında ara (örn: hac, sabah)',
+                    hintText: 'Dua ara',
                     prefixIcon: const Icon(Icons.search_rounded, size: 18),
                     isDense: true,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -189,7 +165,7 @@ class _DualarScreenState extends State<DualarScreen> {
                             return Padding(
                               padding: const EdgeInsets.only(right: 6),
                               child: ChoiceChip(
-                                label: Text(k, style: TextStyle(fontSize: 11, color: sel ? Colors.white : Colors.black87)),
+                                label: Text(kategoriTr(k), style: TextStyle(fontSize: 11, color: sel ? Colors.white : Colors.black87)),
                                 selected: sel,
                                 selectedColor: AppTheme.gold,
                                 backgroundColor: Colors.white,
@@ -242,7 +218,7 @@ class _DualarScreenState extends State<DualarScreen> {
           list = list.where((d) => d.category.toLowerCase() == filter.toLowerCase()).toList();
         }
         if (search.isNotEmpty) {
-          list = list.where((d) => d.title.toLowerCase().contains(search) || d.arabic.contains(search) || d.translation.toLowerCase().contains(search) || d.translationTr.toLowerCase().contains(search)).toList();
+          list = list.where((d) => d.title.toLowerCase().contains(search) || d.titleTr.toLowerCase().contains(search) || d.arabic.contains(search) || d.translation.toLowerCase().contains(search) || d.translationTr.toLowerCase().contains(search)).toList();
         }
         if (list.isEmpty) {
           return Center(child: Text('Sonuç yok: $filter / "$search"', style: const TextStyle(fontSize: 12)));
@@ -271,7 +247,7 @@ class _DualarScreenState extends State<DualarScreen> {
                       children: [
                         Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.menu_book_rounded, color: AppTheme.primary, size: 16)),
                         const SizedBox(width: 10),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(d.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)), Text('${d.category} • ${d.source}', style: TextStyle(fontSize: 10, color: Colors.grey.shade600))])),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(d.titleTr.isNotEmpty ? d.titleTr : d.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)), Text('${kategoriTr(d.category)} • ${d.source}', style: TextStyle(fontSize: 10, color: Colors.grey.shade600))])),
                         IconButton(icon: Icon(isPlaying ? Icons.pause_circle_rounded : Icons.play_circle_rounded, color: AppTheme.primary, size: 30), onPressed: () => _togglePlayApi(d)),
                       ],
                     ),
@@ -280,7 +256,7 @@ class _DualarScreenState extends State<DualarScreen> {
                         margin: const EdgeInsets.only(top: 8, bottom: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(10)),
-                        child: Row(children: [const Icon(Icons.graphic_eq_rounded, size: 16, color: AppTheme.primary), const SizedBox(width: 8), Expanded(child: Text(_apiAudioPlaying ? 'API sesi çalınıyor...' : 'TTS ile okunuyor...', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w700))), TextButton(onPressed: () => _togglePlayApi(d), child: const Text('Durdur', style: TextStyle(fontSize: 11)))]),
+                        child: Row(children: [const Icon(Icons.graphic_eq_rounded, size: 16, color: AppTheme.primary), const SizedBox(width: 8), const Expanded(child: Text('Orijinal ses çalınıyor • API', style: TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w700))), TextButton(onPressed: () => _togglePlayApi(d), child: const Text('Durdur', style: TextStyle(fontSize: 11)))]),
                       ),
                     const SizedBox(height: 8),
                     // PRO kart: Arapça her zaman üstte (Amiri font), altında TR/EN okunuş + anlam
@@ -299,14 +275,14 @@ class _DualarScreenState extends State<DualarScreen> {
                             child: Text(
                               d.arabic.isEmpty ? '(Arapça metin API\'de yok)' : d.arabic,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.amiri(fontSize: 22, height: 2.0, color: AppTheme.primaryDark, fontWeight: FontWeight.w600),
+                              style: AppTheme.arabic(size: 22, height: 2.0),
                             ),
                           ),
                           if (d.transliteration.isNotEmpty) ...[
                             const Divider(height: 16),
                             const Text('OKUNUŞ (TR)', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.primary, letterSpacing: 1)),
                             const SizedBox(height: 4),
-                            Text(d.transliteration, style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 12, height: 1.5)),
+                            Text(trOkunus(d.transliteration), style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 12, height: 1.5)),
                             const SizedBox(height: 6),
                             const Text('TRANSLITERATION (EN)', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.grey, letterSpacing: 1)),
                             const SizedBox(height: 4),
@@ -316,7 +292,10 @@ class _DualarScreenState extends State<DualarScreen> {
                             const Divider(height: 16),
                             const Text('TÜRKÇE ANLAM', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.primary, letterSpacing: 1)),
                             const SizedBox(height: 4),
-                            Text(d.translationTr.isNotEmpty ? d.translationTr : d.translation, style: const TextStyle(fontSize: 12, height: 1.5)),
+                            if (d.translationTr.isNotEmpty && d.translationTr != d.translation)
+                              Text(d.translationTr, style: const TextStyle(fontSize: 12, height: 1.5))
+                            else
+                              Text('(Türkçe çevirisi hazırlanıyor — İngilizce anlamı aşağıda)', style: TextStyle(fontSize: 11, height: 1.5, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
                             const SizedBox(height: 8),
                             const Text('ENGLISH MEANING', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.grey, letterSpacing: 1)),
                             const SizedBox(height: 4),
@@ -336,7 +315,7 @@ class _DualarScreenState extends State<DualarScreen> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        ElevatedButton.icon(icon: Icon(isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded, size: 14), label: Text(isPlaying ? 'Durdur' : (d.audioUrl != null && d.audioUrl!.isNotEmpty ? 'Dinle (API)' : 'Dinle (TTS)'), style: const TextStyle(fontSize: 11)), onPressed: () => _togglePlayApi(d), style: ElevatedButton.styleFrom(backgroundColor: isPlaying ? Colors.red.shade600 : AppTheme.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), visualDensity: VisualDensity.compact)),
+                        ElevatedButton.icon(icon: Icon(isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded, size: 14), label: Text(isPlaying ? 'Durdur' : 'Dinle', style: const TextStyle(fontSize: 11)), onPressed: () => _togglePlayApi(d), style: ElevatedButton.styleFrom(backgroundColor: isPlaying ? Colors.red.shade600 : AppTheme.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), visualDensity: VisualDensity.compact)),
                         const SizedBox(width: 6),
                         OutlinedButton.icon(icon: const Icon(Icons.copy_rounded, size: 12), label: const Text('Kopyala', style: TextStyle(fontSize: 11)), onPressed: () async { await Clipboard.setData(ClipboardData(text: '${d.title}\n${d.arabic}\n${d.transliteration}\nTR: ${d.translationTr}\nEN: ${d.translation}')); if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kopyalandı'))); }, style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), visualDensity: VisualDensity.compact)),
                         const Spacer(),

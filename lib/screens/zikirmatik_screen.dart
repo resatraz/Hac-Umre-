@@ -134,7 +134,7 @@ class _ZikirSayacTabState extends State<_ZikirSayacTab> {
             ),
             child: Column(
               children: [
-                Text(secili.arapca, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+                Text(secili.arapca, style: const TextStyle(fontFamily: AppTheme.arabicFont, color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700, height: 1.8), textAlign: TextAlign.center),
                 const SizedBox(height: 6),
                 Text(secili.okunus, style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontStyle: FontStyle.italic)),
                 const SizedBox(height: 4),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/zikir_data.dart';
 import '../../theme/app_theme.dart';
-import '../../services/audio_service.dart';
+import '../../services/hac_umre_audio.dart';
 
 class GunlukDualarScreen extends StatefulWidget {
   const GunlukDualarScreen({super.key});
@@ -11,9 +11,7 @@ class GunlukDualarScreen extends StatefulWidget {
 
 class _GunlukDualarScreenState extends State<GunlukDualarScreen> {
   String? playingId;
-  final _audio = AppAudioService();
-  @override
-  void initState() { super.initState(); _audio.init(); }
+  final _audio = HacUmreAudioService();
   @override
   void dispose() { _audio.stop(); super.dispose(); }
   Future<void> _toggle(Map<String, String> d) async {
@@ -24,10 +22,12 @@ class _GunlukDualarScreenState extends State<GunlukDualarScreen> {
       return;
     }
     setState(() => playingId = id);
-    final ok = await _audio.speak(id: id, arapca: d['arapca']!, okunus: d['okunus']!, onDone: () { if (mounted) setState(() => playingId = null); });
-    if (!ok && mounted) {
+    try {
+      await _audio.play(gunlukSesKey(id), onDone: () { if (mounted) setState(() => playingId = null); });
+    } catch (_) {
+      if (!mounted) return;
       setState(() => playingId = null);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ses çalınamadı')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ses çalınamadı. İnternet bağlantınızı kontrol edin.')));
     }
   }
 
@@ -57,13 +57,14 @@ class _GunlukDualarScreenState extends State<GunlukDualarScreen> {
                 ]),
                 Text(d['baslik']!, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                 const SizedBox(height: 8),
-                Container(width: double.infinity, padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(10)), child: Text(d['arapca']!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: AppTheme.primaryDark, fontWeight: FontWeight.w600))),
+                Container(width: double.infinity, padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(10)), child: Text(d['arapca']!, textAlign: TextAlign.center, style: AppTheme.arabic(size: 18))),
                 const SizedBox(height: 6),
                 Text(d['okunus']!, style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 12)),
                 const SizedBox(height: 4),
                 Text(d['anlam']!, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
                 const SizedBox(height: 8),
-                SizedBox(width: double.infinity, child: ElevatedButton.icon(icon: Icon(isPlaying ? Icons.stop_rounded : Icons.volume_up_rounded, size: 16), label: Text(isPlaying ? 'Durdur' : 'Dinle (TTS)'), onPressed: () => _toggle(d), style: ElevatedButton.styleFrom(backgroundColor: isPlaying ? Colors.red.shade600 : AppTheme.primary, foregroundColor: Colors.white))),
+                SizedBox(width: double.infinity, child: ElevatedButton.icon(icon: Icon(isPlaying ? Icons.stop_rounded : Icons.volume_up_rounded, size: 16), label: Text(isPlaying ? 'Durdur' : 'Sesli Dinle'), onPressed: () => _toggle(d), style: ElevatedButton.styleFrom(backgroundColor: isPlaying ? Colors.red.shade600 : AppTheme.primary, foregroundColor: Colors.white))),
+                Text('Orijinal ses • Offline (asset) + API yedeği', style: TextStyle(fontSize: 10, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
               ],
             ),
           );

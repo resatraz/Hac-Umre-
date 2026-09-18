@@ -11,7 +11,7 @@ class BildirimService {
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _ready = false;
 
-  Future<void> init() async {
+  Future<void> init({void Function(String? payload)? onTap}) async {
     tzdata.initializeTimeZones();
     // Default to Asia/Riyadh for Mekke/Medine, fallback to local
     try {
@@ -22,7 +22,10 @@ class BildirimService {
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
     const init = InitializationSettings(android: android, iOS: ios);
-    await _plugin.initialize(init);
+    await _plugin.initialize(
+      init,
+      onDidReceiveNotificationResponse: (r) => onTap?.call(r.payload),
+    );
     // Android 13+ permission
     await _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
     _ready = true;
@@ -33,7 +36,7 @@ class BildirimService {
     if (!_ready) await init();
     const android = AndroidNotificationDetails('ezan_vakti', 'Ezan Vakti', channelDescription: 'Ezan vakitleri', importance: Importance.high, priority: Priority.high);
     const details = NotificationDetails(android: android, iOS: DarwinNotificationDetails());
-    await _plugin.show(0, 'Ezan Vakti', '$sehir için bildirim testi — Ezan sesi hazır', details);
+    await _plugin.show(0, 'Ezan Vakti', '$sehir için bildirim testi — Ezan sesi hazır', details, payload: 'ezan_vakti');
   }
 
   Future<void> scheduleDaily({required int id, required String title, required String body, required int hour, required int minute}) async {
@@ -43,7 +46,7 @@ class BildirimService {
     if (scheduled.isBefore(now)) scheduled = scheduled.add(const Duration(days: 1));
     const android = AndroidNotificationDetails('ezan_vakti_daily', 'Ezan Vakti Günlük', importance: Importance.high, priority: Priority.high);
     const details = NotificationDetails(android: android);
-    await _plugin.zonedSchedule(id, title, body, scheduled, details, androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.time);
+    await _plugin.zonedSchedule(id, title, body, scheduled, details, androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.time, payload: 'ezan_vakti');
   }
 
   Future<void> scheduleVakitBildirimleri(VakitGun vakit, String sehir) async {
