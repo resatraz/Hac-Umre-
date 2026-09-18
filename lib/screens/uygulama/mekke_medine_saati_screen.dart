@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_theme.dart';
 import '../../data/takvim_data.dart';
 import '../../services/ezan_vakti_service.dart';
-import 'ezan_sesleri_screen.dart';
 
 class MekkeMedineSaatiScreen extends StatefulWidget {
   const MekkeMedineSaatiScreen({super.key});
@@ -24,9 +24,26 @@ class _MekkeMedineSaatiScreenState extends State<MekkeMedineSaatiScreen> with Si
   void initState() {
     super.initState();
     _tab = TabController(length: 2, vsync: this);
+    _tab.addListener(() {
+      if (!_tab.indexIsChanging) _saveSehir(_tab.index == 1 ? 16308 : 16309);
+    });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() => _nowUtc = DateTime.now().toUtc()));
     _mekkeFuture = _service.fetchBugun(EzanVaktiService.mekkaId);
     _medineFuture = _service.fetchBugun(EzanVaktiService.medineId);
+    _loadSehir();
+  }
+
+  Future<void> _loadSehir() async {
+    final p = await SharedPreferences.getInstance();
+    final id = p.getInt('ezan_ilce') ?? 16309;
+    if (!mounted) return;
+    _tab.animateTo(id == 16308 ? 1 : 0);
+  }
+
+  Future<void> _saveSehir(int id) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setInt('ezan_ilce', id);
+    await p.setString('ezan_label', id == 16308 ? 'Medine' : 'Mekke');
   }
 
   @override
@@ -141,8 +158,6 @@ class _SehirTab extends StatelessWidget {
                       Text('Vakit alınamadı: ${snap.error}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 11)),
                       const SizedBox(height: 8),
                       ElevatedButton.icon(icon: const Icon(Icons.refresh_rounded, size: 16), label: const Text('Tekrar Dene', style: TextStyle(fontSize: 12)), onPressed: onRefresh, style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white)),
-                      const SizedBox(height: 4),
-                      Text('Kaynak: ezanvakti.emushaf.net/vakitler/${sehir == "Mekke" ? "16309" : "16308"} • Diyanet', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
                     ],
                   ),
                 );
@@ -160,22 +175,6 @@ class _SehirTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   _VakitGrid(vakit: v),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(color: AppTheme.goldLight, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3))),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.verified_rounded, size: 12, color: AppTheme.goldDark), const SizedBox(width: 4), Text('Kaynak: ezanvakti.emushaf.net • Diyanet İşleri', style: TextStyle(fontSize: 10, color: Colors.grey.shade700))]),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.music_note_rounded, size: 16),
-                      label: const Text('Ezan Sesleri (9) • İndir & Dinle', style: TextStyle(fontSize: 12)),
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EzanSesleriScreen())),
-                      style: OutlinedButton.styleFrom(foregroundColor: AppTheme.primary),
-                    ),
-                  ),
                 ],
               );
             },

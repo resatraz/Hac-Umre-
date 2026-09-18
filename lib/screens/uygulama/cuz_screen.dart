@@ -274,32 +274,7 @@ class _CuzScreenState extends State<CuzScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    height: 42,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: 30,
-                      separatorBuilder: (_, _) => const SizedBox(width: 6),
-                      itemBuilder: (context, i) {
-                        final n = i + 1;
-                        final sel = n == _seciliCuz;
-                        return ChoiceChip(
-                          label: Text('$n'),
-                          selected: sel,
-                          selectedColor: Colors.white,
-                          backgroundColor: Colors.white.withValues(alpha: 0.15),
-                          labelStyle: TextStyle(color: sel ? AppTheme.primary : Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
-                          side: BorderSide(color: sel ? Colors.white : Colors.white.withValues(alpha: 0.3)),
-                          onSelected: (v) {
-                            if (!v) return;
-                            setState(() => _seciliCuz = n);
-                            _fetch();
-                          },
-                        );
-                      },
-                    ),
-                  ),
+
                 ],
               ),
             ),

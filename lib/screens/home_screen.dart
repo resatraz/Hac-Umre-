@@ -2,6 +2,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../data/hac_data.dart';
 import '../data/umre_data.dart';
@@ -111,7 +112,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle: 'home.zikirmatik_sub'.tr(),
                   count: '3D Pusula',
                   icon: Icons.touch_app_rounded,
-                  gradient: const [Color(0xFF00695C), Color(0xFF26A69A)],
+                  gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZikirmatikScreen())),
                 ),
                 const SizedBox(height: 10),
@@ -120,7 +121,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle: 'home.takvim_sub'.tr(),
                   count: 'Kandil Bildirim',
                   icon: Icons.calendar_month_rounded,
-                  gradient: const [Color(0xFF4A148C), Color(0xFF7B1FA2)],
+                  gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TakvimScreen())),
                 ),
                 const SizedBox(height: 10),
@@ -138,7 +139,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle: 'home.umrah_sub'.tr(),
                   count: '${umreAdimlari.length} Adım',
                   icon: Icons.spa_rounded,
-                  gradient: const [Color(0xFF8D6E1F), Color(0xFFC5A253)],
+                  gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UmreRehberiScreen())),
                 ),
                 const SizedBox(height: 10),
@@ -147,7 +148,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle: 'home.ziyaret_sub'.tr(),
                   count: '${ziyaretYerleri.length} Mekan',
                   icon: Icons.place_rounded,
-                  gradient: const [Color(0xFF1565C0), Color(0xFF42A5F5)],
+                  gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZiyaretListScreen())),
                 ),
                 const SizedBox(height: 10),
@@ -156,7 +157,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle: 'home.harita_sub'.tr(),
                   count: 'Mekke • Medine',
                   icon: Icons.map_rounded,
-                  gradient: const [Color(0xFF4A148C), Color(0xFF8E24AA)],
+                  gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HaritaScreen())),
                 ),
               ],
@@ -248,10 +249,40 @@ class _HomeSaatKarti extends StatefulWidget {
 class _HomeSaatKartiState extends State<_HomeSaatKarti> {
   late Timer _timer;
   DateTime _nowUtc = DateTime.now().toUtc();
+  String _sehir = 'Mekke';
+  String _aciklama = 'Mescid-i Haram • Kâbe';
+  IconData _icon = Icons.mosque_rounded;
+
   @override
   void initState() {
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() => _nowUtc = DateTime.now().toUtc()));
+    _loadSehir();
+  }
+
+  Future<void> _loadSehir() async {
+    final p = await SharedPreferences.getInstance();
+    final id = p.getInt('ezan_ilce');
+    if (!mounted) return;
+    setState(() {
+      if (id == 16308) {
+        _sehir = 'Medine';
+        _aciklama = 'Mescid-i Nebevi • Ravza';
+        _icon = Icons.mosque_outlined;
+      } else {
+        _sehir = 'Mekke';
+        _aciklama = 'Mescid-i Haram • Kâbe';
+        _icon = Icons.mosque_rounded;
+      }
+    });
+  }
+
+  Future<void> _refreshSehir() async => _loadSehir();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadSehir();
   }
 
   @override
@@ -269,7 +300,10 @@ class _HomeSaatKartiState extends State<_HomeSaatKarti> {
     final dateStr = '${riyadh.day} ${aylar[riyadh.month - 1]} ${riyadh.year} ${gunler[riyadh.weekday - 1]}';
     final hicri = miladiToHicri(riyadh);
     return InkWell(
-      onTap: widget.onTap,
+      onTap: () async {
+        await Navigator.push(context, MaterialPageRoute(builder: (_) => const MekkeMedineSaatiScreen()));
+        _refreshSehir();
+      },
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -278,9 +312,9 @@ class _HomeSaatKartiState extends State<_HomeSaatKarti> {
           children: [
             Row(
               children: [
-                Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.mosque_rounded, color: Colors.white, size: 18)),
+                Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)), child: Icon(_icon, color: Colors.white, size: 18)),
                 const SizedBox(width: 10),
-                const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Mekke', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)), Text('Mescid-i Haram • Kâbe', style: TextStyle(color: Colors.white, fontSize: 11))])),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_sehir, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)), Text(_aciklama, style: const TextStyle(color: Colors.white, fontSize: 11))])),
                 Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)), child: const Text('UTC+3 AST', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700))),
                 const SizedBox(width: 6),
                 const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 18),

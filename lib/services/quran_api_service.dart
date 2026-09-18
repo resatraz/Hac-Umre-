@@ -60,14 +60,28 @@ class QuranApiService {
   Map<String, String> get _headers => {
         'Accept': 'application/json',
         'X-API-Key': _apiKey,
+        'User-Agent': 'hac_umre_rehberi/1.0 (Flutter)',
       };
+
+  Future<T> _withRetry<T>(Future<T> Function() fn, {int tries = 3}) async {
+    Exception? last;
+    for (int i = 0; i < tries; i++) {
+      try {
+        return await fn();
+      } catch (e) {
+        last = e is Exception ? e : Exception('$e');
+        await Future.delayed(Duration(milliseconds: 400 * (i + 1)));
+      }
+    }
+    throw last ?? Exception('Ağ hatası');
+  }
 
   // Not: Proje içinde Cüz için ayrı API yok — hepsi Sure tabanlı, harici olarak cüz destekler.
   // Burada /juz/{num}/{edition} kullanıyoruz (alquran.cloud harici cüz desteği).
   Future<List<QuranAyah>> fetchJuz(int juzNumber, String edition) async {
     final clamped = juzNumber.clamp(1, 30);
     final uri = Uri.parse('$_base/juz/$clamped/$edition');
-    final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 15));
+    final res = await _withRetry(() => http.get(uri, headers: _headers).timeout(const Duration(seconds: 30)));
     if (res.statusCode != 200) throw Exception('Juz $clamped ${res.statusCode}');
     final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
     final data = body['data'];

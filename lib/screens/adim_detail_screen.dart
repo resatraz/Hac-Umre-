@@ -1,7 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../data/models.dart';
-import '../services/audio_service.dart';
+import '../services/hac_umre_audio.dart';
 
 class AdimDetailScreen extends StatefulWidget {
   final RehberAdim adim;
@@ -15,34 +15,26 @@ class AdimDetailScreen extends StatefulWidget {
 class _AdimDetailScreenState extends State<AdimDetailScreen> {
   bool showArapca = true;
   bool isPlaying = false;
-  final _audio = AppAudioService();
+  final _audio = HacUmreAudioService();
 
-  @override
-  void initState() {
-    super.initState();
-    _audio.init();
-  }
+  String get _sesKey => '${widget.ibadet.toLowerCase() == 'hac' ? 'hac' : 'umre'}_${widget.adim.sira}';
+  String get _sesKaynak => hacUmreSesleri[_sesKey]?.kaynak ?? 'Orijinal ses';
 
   Future<void> _toggleAudio() async {
-    final a = widget.adim;
-    final id = 'adim_${a.sira}_${widget.ibadet}';
     if (isPlaying) {
       await _audio.stop();
       setState(() => isPlaying = false);
       return;
     }
     setState(() => isPlaying = true);
-    final ok = await _audio.speak(
-      id: id,
-      arapca: a.duaArapca,
-      okunus: a.duaOkunus,
-      onDone: () {
+    try {
+      await _audio.play(_sesKey, onDone: () {
         if (mounted) setState(() => isPlaying = false);
-      },
-    );
-    if (!ok && mounted) {
+      });
+    } catch (_) {
+      if (!mounted) return;
       setState(() => isPlaying = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ses çalınamadı. Cihaz TTS ayarlarını kontrol edin.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ses çalınamadı. İnternet bağlantınızı kontrol edin.')));
     }
   }
 
@@ -216,7 +208,7 @@ class _AdimDetailScreenState extends State<AdimDetailScreen> {
                         children: [
                           const Icon(Icons.graphic_eq_rounded, size: 16, color: AppTheme.primary),
                           const SizedBox(width: 8),
-                          const Expanded(child: Text('Sesli dua çalıyor — TTS ile Arapça okunuyor...', style: TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600))),
+                          Expanded(child: Text('Orijinal ses çalınıyor • $_sesKaynak', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600))),
                           TextButton(onPressed: _toggleAudio, child: const Text('Durdur', style: TextStyle(fontSize: 11))),
                         ],
                       ),
@@ -270,12 +262,12 @@ class _AdimDetailScreenState extends State<AdimDetailScreen> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       icon: Icon(isPlaying ? Icons.stop_rounded : Icons.volume_up_rounded, size: 18),
-                      label: Text(isPlaying ? 'Durdur' : 'Sesli Dinle (TTS)'),
+                      label: Text(isPlaying ? 'Durdur' : 'Sesli Dinle'),
                       onPressed: _toggleAudio,
-                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                      style: ElevatedButton.styleFrom(backgroundColor: isPlaying ? Colors.red.shade600 : AppTheme.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                     ),
                   ),
-                  Text('Not: Ses, cihazın metinden sese (TTS) motoruyla Arapça okunur. İlk kullanımda internet gerekebilir.', style: TextStyle(fontSize: 10, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
+                  Text('Orijinal ses • $_sesKaynak • Offline (asset) + API yedeği', style: TextStyle(fontSize: 10, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
                 ],
               ),
             ),

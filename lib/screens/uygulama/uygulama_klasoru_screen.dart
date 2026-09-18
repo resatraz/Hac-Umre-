@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../theme/app_theme.dart';
 import '../zikirmatik_screen.dart';
 import '../takvim_screen.dart';
 import '../ziyaret_list_screen.dart';
@@ -10,6 +9,7 @@ import 'ezan_sesleri_screen.dart';
 import 'cuz_screen.dart';
 import 'pusula_screen.dart';
 import 'gunluk_dualar_screen.dart';
+import 'radyo_tv_screen.dart';
 
 class UygulamaKlasoruScreen extends StatelessWidget {
   const UygulamaKlasoruScreen({super.key});
@@ -30,22 +30,6 @@ class UygulamaKlasoruScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryLight,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.15)),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.folder_rounded, color: AppTheme.primary, size: 20),
-                SizedBox(width: 8),
-                Expanded(child: Text('Diğer özellikler bu klasörde toplandı — Ana Sayfa, Hac ve Umre alt navigasyonda.', style: TextStyle(fontSize: 12, color: AppTheme.primaryDark))),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
           _FolderCard(
             title: 'Zikirmatik',
             subtitle: 'Sayaç • Tesbihat',
@@ -108,6 +92,13 @@ class UygulamaKlasoruScreen extends StatelessWidget {
             icon: Icons.auto_stories_rounded,
             gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CuzScreen())),
+          ),
+          _FolderCard(
+            title: 'Radyo & TV',
+            subtitle: 'GitHub • 21 kanal • Uygulama içi player • PRO',
+            icon: Icons.radio_rounded,
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RadyoTvScreen())),
           ),
           _FolderCard(
             title: 'Kur\'an-ı Kerim & Elifba',

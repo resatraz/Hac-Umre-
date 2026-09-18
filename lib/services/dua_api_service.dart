@@ -29,6 +29,8 @@ class ApiDua {
   });
 
   factory ApiDua.fromUmmah(Map<String, dynamic> j) {
+    String? audio = j['audio_url']?.toString() ?? j['audio']?.toString();
+    if (audio != null && audio.startsWith('/')) audio = 'https://ummahapi.com$audio';
     return ApiDua(
       id: (j['id'] ?? j['dua_id'] ?? '').toString(),
       category: (j['category'] ?? 'genel').toString(),
@@ -36,9 +38,9 @@ class ApiDua {
       arabic: (j['arabic'] ?? j['arabic_text'] ?? '').toString(),
       transliteration: (j['transliteration'] ?? j['transliteration_en'] ?? j['latin'] ?? '').toString(),
       translation: (j['translation'] ?? j['english_text'] ?? '').toString(),
-      translationTr: (j['translation_tr'] ?? j['translation'] ?? j['english_text'] ?? '').toString(),
+      translationTr: (j['translation_tr'] ?? '').toString(),
       source: (j['source'] ?? j['reference'] ?? 'UmmahAPI').toString(),
-      audioUrl: j['audio_url']?.toString() ?? j['audio']?.toString(),
+      audioUrl: audio,
       repeat: int.tryParse('${j['repeat'] ?? 1}') ?? 1,
     );
   }
@@ -181,33 +183,52 @@ class DuaApiService {
   }
 
   Future<List<ApiDua>> fetchAllWithFallback() async {
-    List<ApiDua> result = [];
+    List<ApiDua> ummah = [];
     String? lastError;
     try {
-      result = await fetchFromUmmah();
-      if (result.isNotEmpty) {
-        await _saveCache(result);
-        return result;
-      }
+      ummah = await fetchFromUmmah();
     } catch (e) {
       lastError = 'Ummah: $e';
       debugPrint(lastError);
     }
+    // Masnun TR ile Türkçe anlamları doldur (id eşleşmesi)
     try {
-      result = await fetchFromMasnunTr(limit: 40);
-      if (result.isNotEmpty) {
-        await _saveCache(result);
-        return result;
+      final masnun = await fetchFromMasnunTr(limit: 60);
+      final byId = {for (final m in masnun) m.id: m};
+      ummah = ummah.map((u) {
+        final m = byId[u.id];
+        if (m != null && m.translationTr.isNotEmpty) {
+          return ApiDua(
+            id: u.id,
+            category: u.category,
+            title: u.title,
+            arabic: u.arabic.isNotEmpty ? u.arabic : m.arabic,
+            transliteration: u.transliteration,
+            translation: u.translation,
+            translationTr: m.translationTr,
+            source: u.source,
+            audioUrl: u.audioUrl ?? m.audioUrl,
+            repeat: u.repeat,
+          );
+        }
+        return u;
+      }).toList();
+      // Masnun'a özel ek duaları da ekle (ilk 20)
+      for (final m in masnun.take(20)) {
+        if (!ummah.any((u) => u.id == m.id)) ummah.add(m);
       }
     } catch (e) {
-      lastError = 'Masnun: $e';
-      debugPrint(lastError);
+      debugPrint('Masnun merge: $e');
+    }
+    if (ummah.isNotEmpty) {
+      await _saveCache(ummah);
+      return ummah;
     }
     try {
-      result = await fetchFromHisnStatic();
-      if (result.isNotEmpty) {
-        await _saveCache(result);
-        return result;
+      final hisn = await fetchFromHisnStatic();
+      if (hisn.isNotEmpty) {
+        await _saveCache(hisn);
+        return hisn;
       }
     } catch (e) {
       lastError = 'Hisn: $e';
