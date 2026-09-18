@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:async';
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../theme/app_theme.dart';
 import '../data/hac_data.dart';
@@ -13,6 +15,7 @@ import 'dualar_screen.dart';
 import 'zikirmatik_screen.dart';
 import 'takvim_screen.dart';
 import 'uygulama/uygulama_klasoru_screen.dart';
+import 'uygulama/mekke_medine_saati_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -94,6 +97,10 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            sliver: SliverToBoxAdapter(child: _HomeSaatKarti(onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MekkeMedineSaatiScreen())))),
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -222,39 +229,111 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('home.hizli'.tr(), style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 10),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _QuickChip(icon: Icons.touch_app_rounded, label: 'Zikir Çek', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZikirmatikScreen()))),
-                        const SizedBox(width: 8),
-                        _QuickChip(icon: Icons.explore_rounded, label: '3D Pusula', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZikirmatikScreen()))),
-                        const SizedBox(width: 8),
-                        _QuickChip(icon: Icons.calendar_month_rounded, label: 'Takvim', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TakvimScreen()))),
-                        const SizedBox(width: 8),
-                        _QuickChip(icon: Icons.wb_sunny_rounded, label: 'Arafat Duası', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DualarScreen(initialKategori: 'Arafat')))),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              ),
-            ),
-          ),
+
         ],
       ),
     );
   }
 
   String _ayAdi(int m) => const ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'][m - 1];
+}
+
+class _HomeSaatKarti extends StatefulWidget {
+  final VoidCallback onTap;
+  const _HomeSaatKarti({required this.onTap});
+  @override
+  State<_HomeSaatKarti> createState() => _HomeSaatKartiState();
+}
+
+class _HomeSaatKartiState extends State<_HomeSaatKarti> {
+  late Timer _timer;
+  DateTime _nowUtc = DateTime.now().toUtc();
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() => _nowUtc = DateTime.now().toUtc()));
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final riyadh = _nowUtc.add(const Duration(hours: 3));
+    final timeStr = '${riyadh.hour.toString().padLeft(2, '0')}:${riyadh.minute.toString().padLeft(2, '0')}:${riyadh.second.toString().padLeft(2, '0')}';
+    const aylar = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    const gunler = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
+    final dateStr = '${riyadh.day} ${aylar[riyadh.month - 1]} ${riyadh.year} ${gunler[riyadh.weekday - 1]}';
+    final hicri = miladiToHicri(riyadh);
+    return InkWell(
+      onTap: widget.onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF0D5C3D), Color(0xFF1B8A5A)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: const Color(0xFF0D5C3D).withValues(alpha: 0.25), blurRadius: 10, offset: const Offset(0, 4))]),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.mosque_rounded, color: Colors.white, size: 18)),
+                const SizedBox(width: 10),
+                const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Mekke', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)), Text('Mescid-i Haram • Kâbe', style: TextStyle(color: Colors.white, fontSize: 11))])),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)), child: const Text('UTC+3 AST', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700))),
+                const SizedBox(width: 6),
+                const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 18),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                SizedBox(width: 80, height: 80, child: CustomPaint(painter: _HomeAnalogPainter(time: riyadh))),
+                const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(timeStr, style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: 1)), Text(dateStr, style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 11, fontWeight: FontWeight.w600)), const SizedBox(height: 4), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)), child: Text(hicri, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600)))])),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeAnalogPainter extends CustomPainter {
+  final DateTime time;
+  _HomeAnalogPainter({required this.time});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2 - 4;
+    final bg = Paint()..color = Colors.white.withValues(alpha: 0.95)..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius, bg);
+    final border = Paint()..color = Colors.white.withValues(alpha: 0.9)..style = PaintingStyle.stroke..strokeWidth = 2;
+    canvas.drawCircle(center, radius, border);
+    final tick = Paint()..color = const Color(0xFF0D5C3D).withValues(alpha: 0.7)..strokeWidth = 1.2..strokeCap = StrokeCap.round;
+    for (int i = 0; i < 12; i++) {
+      final angle = i * math.pi / 6 - math.pi / 2;
+      final p1 = Offset(center.dx + (radius - 5) * math.cos(angle), center.dy + (radius - 5) * math.sin(angle));
+      final p2 = Offset(center.dx + (radius - 2) * math.cos(angle), center.dy + (radius - 2) * math.sin(angle));
+      canvas.drawLine(p1, p2, tick);
+    }
+    final hour = (time.hour % 12) + time.minute / 60.0;
+    final hourAngle = hour * math.pi / 6 - math.pi / 2;
+    final hourPaint = Paint()..color = const Color(0xFF0D5C3D)..strokeWidth = 2.5..strokeCap = StrokeCap.round;
+    canvas.drawLine(center, Offset(center.dx + (radius * 0.45) * math.cos(hourAngle), center.dy + (radius * 0.45) * math.sin(hourAngle)), hourPaint);
+    final minuteAngle = time.minute * math.pi / 30 - math.pi / 2;
+    final minPaint = Paint()..color = const Color(0xFF1B8A5A)..strokeWidth = 1.8..strokeCap = StrokeCap.round;
+    canvas.drawLine(center, Offset(center.dx + (radius * 0.62) * math.cos(minuteAngle), center.dy + (radius * 0.62) * math.sin(minuteAngle)), minPaint);
+    final secAngle = time.second * math.pi / 30 - math.pi / 2;
+    final secPaint = Paint()..color = Colors.red.shade600..strokeWidth = 1..strokeCap = StrokeCap.round;
+    canvas.drawLine(center, Offset(center.dx + (radius * 0.7) * math.cos(secAngle), center.dy + (radius * 0.7) * math.sin(secAngle)), secPaint);
+    canvas.drawCircle(center, 2.5, Paint()..color = const Color(0xFF0D5C3D));
+  }
+
+  @override
+  bool shouldRepaint(covariant _HomeAnalogPainter oldDelegate) => oldDelegate.time.second != time.second;
 }
 
 // ignore: unused_element
@@ -363,6 +442,7 @@ class _HomeCard extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _QuickChip extends StatelessWidget {
   final IconData icon;
   final String label;

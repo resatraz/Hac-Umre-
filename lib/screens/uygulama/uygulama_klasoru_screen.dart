@@ -6,9 +6,10 @@ import '../takvim_screen.dart';
 import '../ziyaret_list_screen.dart';
 import '../harita_screen.dart';
 import '../dualar_screen.dart';
-import 'mekke_medine_saati_screen.dart';
 import 'ezan_sesleri_screen.dart';
 import 'cuz_screen.dart';
+import 'pusula_screen.dart';
+import 'gunluk_dualar_screen.dart';
 
 class UygulamaKlasoruScreen extends StatelessWidget {
   const UygulamaKlasoruScreen({super.key});
@@ -47,72 +48,79 @@ class UygulamaKlasoruScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _FolderCard(
             title: 'Zikirmatik',
-            subtitle: 'Sayaç • Tesbihat • 3D Pusula • Günlük Dualar',
+            subtitle: 'Sayaç • Tesbihat',
             icon: Icons.touch_app_rounded,
-            gradient: const [Color(0xFF00695C), Color(0xFF26A69A)],
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZikirmatikScreen())),
+          ),
+          _FolderCard(
+            title: 'Pusula 3D',
+            subtitle: 'Kıble • 3D • Kalibre',
+            icon: Icons.explore_rounded,
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PusulaScreen())),
+          ),
+          _FolderCard(
+            title: 'Günlük Dualar',
+            subtitle: 'Sabah/Akşam • TTS • Kopyala',
+            icon: Icons.menu_book_rounded,
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GunlukDualarScreen())),
           ),
           _FolderCard(
             title: 'Takvim',
             subtitle: 'Hicri / Miladi • Kandil bildirimleri',
             icon: Icons.calendar_month_rounded,
-            gradient: const [Color(0xFF4A148C), Color(0xFF7B1FA2)],
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TakvimScreen())),
           ),
           _FolderCard(
             title: 'Ziyaret Yerleri',
             subtitle: 'Mekke & Medine • 14 mekan',
             icon: Icons.place_rounded,
-            gradient: const [Color(0xFF1565C0), Color(0xFF42A5F5)],
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZiyaretListScreen())),
           ),
           _FolderCard(
             title: 'Harita',
             subtitle: 'Offline destekli • OSM • Konum',
             icon: Icons.map_rounded,
-            gradient: const [Color(0xFF2E7D32), Color(0xFF66BB6A)],
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HaritaScreen())),
           ),
           _FolderCard(
             title: 'Dualar',
             subtitle: 'API (126+1001) • TTS sesli • Offline',
             icon: Icons.menu_book_rounded,
-            gradient: const [Color(0xFF8D6E1F), Color(0xFFC5A253)],
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DualarScreen())),
-          ),
-          _FolderCard(
-            title: 'Mekke & Medine Saati',
-            subtitle: 'Canlı • Analog + Dijital • Hicri tarih • Ezan vakitleri',
-            icon: Icons.schedule_rounded,
-            gradient: const [Color(0xFF37474F), Color(0xFF78909C)],
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MekkeMedineSaatiScreen())),
           ),
           _FolderCard(
             title: 'Ezan Sesleri',
             subtitle: '9 Drive ses • İndirmeli • Bildirim • Tıklama koruması',
             icon: Icons.music_note_rounded,
-            gradient: const [Color(0xFF6A1B9A), Color(0xFFAB47BC)],
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EzanSesleriScreen())),
           ),
           _FolderCard(
             title: 'Cüz (30 Cüz)',
             subtitle: 'Hafız seç • Kaydet • Kaldığın yer • Play koruması',
             icon: Icons.auto_stories_rounded,
-            gradient: const [Color(0xFF004D40), Color(0xFF00796B)],
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CuzScreen())),
           ),
           _FolderCard(
             title: 'Kur\'an-ı Kerim & Elifba',
             subtitle: 'Play Store • com.kurankerim — Dokun Play Store\'a git',
             icon: Icons.menu_book_rounded,
-            gradient: const [Color(0xFF0D47A1), Color(0xFF42A5F5)],
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => _openStore(context, 'https://play.google.com/store/apps/details?id=com.kurankerim&pcampaignid=web_share'),
           ),
           _FolderCard(
             title: 'Ezan Vakti : Namaz ve Kuran',
             subtitle: 'Play Store • com.nurnamazprogrami — Dokun Play Store\'a git',
             icon: Icons.access_time_rounded,
-            gradient: const [Color(0xFFBF360C), Color(0xFFFF7043)],
+            gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             onTap: () => _openStore(context, 'https://play.google.com/store/apps/details?id=com.nurnamazprogrami&pcampaignid=web_share'),
           ),
         ],

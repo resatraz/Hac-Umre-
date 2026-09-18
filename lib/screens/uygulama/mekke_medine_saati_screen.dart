@@ -74,7 +74,7 @@ class _MekkeMedineSaatiScreenState extends State<MekkeMedineSaatiScreen> with Si
         children: [
           _SehirTab(
             sehir: 'Mekke',
-            aciklama: 'Mescid-i Haram • Kâbe • 21.3891°N 39.8579°E',
+            aciklama: 'Mescid-i Haram • Kâbe',
             icon: Icons.mosque_rounded,
             gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             riyadh: _riyadh,
@@ -86,7 +86,7 @@ class _MekkeMedineSaatiScreenState extends State<MekkeMedineSaatiScreen> with Si
           ),
           _SehirTab(
             sehir: 'Medine',
-            aciklama: 'Mescid-i Nebevi • Ravza • 24.4672°N 39.6111°E',
+            aciklama: 'Mescid-i Nebevi • Ravza',
             icon: Icons.mosque_outlined,
             gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
             riyadh: _riyadh,
