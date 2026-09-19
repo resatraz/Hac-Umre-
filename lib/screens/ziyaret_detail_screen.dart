@@ -96,17 +96,33 @@ class _ZiyaretDetailScreenState extends State<ZiyaretDetailScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            Container(
-              height: 150,
-              width: double.infinity,
-              decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade200)),
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(z.icon, size: 44, color: AppTheme.primary.withValues(alpha: 0.4)),
-                const SizedBox(height: 6),
-                Text(z.ad, style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600)),
-                Text('Tarihi görsel', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-              ]),
-            ),
+            if (z.imagePath != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.asset(
+                  z.imagePath!,
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stack) => Container(
+                    height: 200,
+                    decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(14)),
+                    child: Icon(z.icon, size: 48, color: AppTheme.primary.withValues(alpha: 0.4)),
+                  ),
+                ),
+              )
+            else
+              Container(
+                height: 150,
+                width: double.infinity,
+                decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade200)),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(z.icon, size: 44, color: AppTheme.primary.withValues(alpha: 0.4)),
+                  const SizedBox(height: 6),
+                  Text(z.ad, style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                  Text('Tarihi görsel', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                ]),
+              ),
             const SizedBox(height: 14),
             Text('Hakkında', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),

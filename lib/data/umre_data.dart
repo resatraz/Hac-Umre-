@@ -5,7 +5,7 @@ const List<RehberAdim> umreAdimlari = [
   RehberAdim(
     sira: 1,
     baslik: 'İhram & Niyet',
-    kisaAciklama: 'Mikât\'ta ihrama gir ve niyet et',
+    kisaAciklama: 'Mikât\'ta ihroma gir ve niyet et',
     detay:
         'Umre için de ihram farzdır. Mikât sınırını ihramsız geçmek caiz değildir. Gusül, ihram elbisesi, niyet ve telbiye umrenin başlangıcıdır. Niyet: "Allahım senin rızan için umre yapmak istiyorum, kolaylaştır ve kabul eyle" denir.',
     duaArapca: 'لَبَّيْكَ اللَّهُمَّ عُمْرَةً',
@@ -13,6 +13,7 @@ const List<RehberAdim> umreAdimlari = [
     duaAnlam: 'Buyur Allahım, umre için geldim',
     icon: Icons.checkroom_rounded,
     sure: '30 dk',
+    imagePath: 'assets/images/umre/1_ihram.jfif',
     maddeler: [
       'Mikât\'ta gusül al, ihram giy',
       'Niyet et ve telbiye getir',
@@ -32,6 +33,7 @@ const List<RehberAdim> umreAdimlari = [
     duaAnlam: 'Allah\'ı tesbih eder, O\'na hamd ederim',
     icon: Icons.mosque_rounded,
     sure: '1-1.5 saat',
+    imagePath: 'assets/images/umre/2_tavaf.jfif',
     maddeler: [
       'Abdestli olarak Hacerülesved hizasında niyet',
       '7 şavt, her şavtta dua',
@@ -50,6 +52,7 @@ const List<RehberAdim> umreAdimlari = [
     duaAnlam: 'Rabbim bağışla ve merhamet et',
     icon: Icons.content_cut_rounded,
     sure: '1 saat',
+    imagePath: 'assets/images/umre/3_say.jfif',
     maddeler: [
       'Safa\'dan başla, Merve\'de bitir (7 şavt)',
       'Yeşil ışıklarda hervele (erkekler)',

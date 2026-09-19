@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../data/models.dart';
 import '../services/hac_umre_audio.dart';
@@ -35,6 +36,28 @@ class _AdimDetailScreenState extends State<AdimDetailScreen> {
       if (!mounted) return;
       setState(() => isPlaying = false);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ses çalınamadı. İnternet bağlantınızı kontrol edin.')));
+    }
+  }
+
+  ({double lat, double lng, String ad})? _konumBilgisi() {
+    final b = widget.adim.baslik.toLowerCase();
+    if (b.contains('tavaf') || b.contains('kud')) return (lat: 21.3891, lng: 39.8579, ad: 'Kâbe');
+    if (b.contains('say') || b.contains("sa'y")) return (lat: 21.3900, lng: 39.8570, ad: 'Safa-Merve');
+    if (b.contains('arafat')) return (lat: 21.3561, lng: 39.9762, ad: 'Arafat');
+    if (b.contains('muzdelife')) return (lat: 21.3850, lng: 39.9350, ad: 'Müzdelife');
+    if (b.contains('mina') || b.contains('şeytan')) return (lat: 21.4133, lng: 39.8933, ad: 'Mina');
+    if (b.contains('ziyaret') || b.contains('veda')) return (lat: 21.3891, lng: 39.8579, ad: 'Kâbe');
+    return null;
+  }
+
+  Future<void> _openKonum() async {
+    final k = _konumBilgisi();
+    if (k == null) return;
+    final url = Uri.parse('https://yandex.com.tr/maps/?rtext=~${k.lat},${k.lng}');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${k.ad} • ${k.lat}, ${k.lng}')));
     }
   }
 
@@ -98,41 +121,40 @@ class _AdimDetailScreenState extends State<AdimDetailScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            Container(
-              height: 160,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryLight,
+            if (a.imagePath != null) ...[
+              const SizedBox(height: 12),
+              ClipRRect(
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.15)),
-              ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(a.icon, size: 48, color: AppTheme.primary.withValues(alpha: 0.5)),
-                        const SizedBox(height: 8),
-                        Text('${a.baslik} Görsel Anlatım', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600)),
-                        Text('İllüstrasyon • Adım ${a.sira}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                      ],
-                    ),
+                child: Image.asset(
+                  a.imagePath!,
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stack) => Container(
+                    height: 200,
+                    decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(14)),
+                    child: Icon(a.icon, size: 48, color: AppTheme.primary.withValues(alpha: 0.4)),
                   ),
-                  Positioned(
-                    right: 12,
-                    top: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                      child: const Text('GÖRSEL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.primary)),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+            ],
+            if (_konumBilgisi() != null) ...[
+              InkWell(
+                onTap: _openKonum,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.primary.withValues(alpha: 0.15)), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)]),
+                  child: Row(children: [
+                    Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.location_on_rounded, color: AppTheme.primary, size: 18)),
+                    const SizedBox(width: 10),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${_konumBilgisi()!.ad} Konumu', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)), Text('Yandex Maps ile yol tarifi', style: TextStyle(fontSize: 11, color: Colors.grey.shade600))])),
+                    const Icon(Icons.navigation_rounded, color: AppTheme.primary, size: 18),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             Text('Detaylı Anlatım', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(a.detay, style: Theme.of(context).textTheme.bodyLarge),

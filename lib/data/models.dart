@@ -12,6 +12,7 @@ class RehberAdim {
   final List<String> maddeler;
   final String sure;
   final String uyari;
+  final String? imagePath;
 
   const RehberAdim({
     required this.sira,
@@ -25,6 +26,7 @@ class RehberAdim {
     required this.maddeler,
     this.sure = '',
     this.uyari = '',
+    this.imagePath,
   });
 }
 
@@ -42,6 +44,7 @@ class ZiyaretYeri {
   final double lat;
   final double lng;
   final String ziyaretAdabi;
+  final String? imagePath;
 
   const ZiyaretYeri({
     required this.id,
@@ -57,6 +60,7 @@ class ZiyaretYeri {
     required this.lat,
     required this.lng,
     required this.ziyaretAdabi,
+    this.imagePath,
   });
 }
 

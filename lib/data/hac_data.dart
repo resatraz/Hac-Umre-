@@ -7,12 +7,13 @@ const List<RehberAdim> hacAdimlari = [
     baslik: 'İhram',
     kisaAciklama: 'Niyet ve telbiye ile hacca giriş',
     detay:
-        'Hac için ihrama girmek farzdır. Mikât sınırında gusül alınır, ihram elbiseleri giyilir, niyet edilir ve telbiye getirilir. İhramlı iken koku sürünmek, tırnak kesmek, tıraş olmak, dikişli elbise giymek (erkekler) ve avlanmak yasaktır. Kadınlar normal tesettürleriyle ihrama girerler.',
+        'Hac için ihrama girmek farzdır. Mikât sınırında gusül alınır, ihram elbiseleri giyilir, niyet edilir ve telbiye getirilir. İhramlı iken koku sürünmek, tırnak kesmek, tıraş olmak, dikişli elbise giymek (erkekler) ve avlanmak yasaktır. Kadınlar normal tesettürleriyle ihroma girerler.',
     duaArapca: 'لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ',
     duaOkunus: 'Lebbeyk Allahümme lebbeyk, lebbeyke lâ şerîke leke lebbeyk',
     duaAnlam: 'Buyur Allahım buyur! Davetine geldim. Senin ortağın yoktur, buyur!',
     icon: Icons.checkroom_rounded,
     sure: '1-2 gün',
+    imagePath: 'assets/images/hac/1_ihram.jfif',
     maddeler: [
       'Mikât mahallinde gusül / abdest al',
       'İhram elbiselerini giy (erkek: 2 parça beyaz örtü)',
@@ -33,6 +34,7 @@ const List<RehberAdim> hacAdimlari = [
     duaAnlam: 'Rabbimiz bize dünyada ve ahirette iyilik ver (Bakara 201)',
     icon: Icons.mosque_rounded,
     sure: '1-2 saat',
+    imagePath: 'assets/images/hac/2_tavaf.jfif',
     maddeler: [
       'Hacerülesved\'i istilam et (el sür, uzaktan işaret et)',
       'Kâbe solda kalacak şekilde 7 şavt yap',
@@ -52,6 +54,7 @@ const List<RehberAdim> hacAdimlari = [
     duaAnlam: 'Şüphesiz Safa ile Merve Allah\'ın nişanelerindendir (Bakara 158)',
     icon: Icons.directions_walk_rounded,
     sure: '45-90 dk',
+    imagePath: 'assets/images/hac/3_say.jfif',
     maddeler: [
       'Safa tepesinde Kâbe\'ye dön, tekbir ve dua et',
       'Merve\'ye yürü, yeşil direkte koş',
@@ -71,6 +74,7 @@ const List<RehberAdim> hacAdimlari = [
     duaAnlam: 'Allah\'tan başka ilah yoktur, O tektir, ortağı yoktur',
     icon: Icons.wb_sunny_rounded,
     sure: '1 gün (9 Zilhicce)',
+    imagePath: 'assets/images/hac/4_arafat.jfif',
     maddeler: [
       'Arafat sınırları içinde bulun (Cebel-i Rahme civarı)',
       'Öğle + ikindi cem-i takdim (birleştirerek)',
@@ -91,6 +95,7 @@ const List<RehberAdim> hacAdimlari = [
     duaAnlam: 'Allahım bize dünyada iyilik ver...',
     icon: Icons.nights_stay_rounded,
     sure: '1 gece',
+    imagePath: 'assets/images/hac/5_muzdelife.jfif',
     maddeler: [
       'Akşam + yatsı cem-i tehir',
       'Geceyi Müzdelife\'de geçir (uyku ve ibadet)',
@@ -110,6 +115,7 @@ const List<RehberAdim> hacAdimlari = [
     duaAnlam: 'Allah en büyüktür',
     icon: Icons.terrain_rounded,
     sure: '3-4 gün',
+    imagePath: 'assets/images/hac/6_mina.jfif',
     maddeler: [
       '1. gün: Sadece Akabe Cemresi\'ne 7 taş',
       '2. ve 3. gün: Küçük-Orta-Akabe\'ye 7\'şer taş',
@@ -130,6 +136,7 @@ const List<RehberAdim> hacAdimlari = [
     duaAnlam: 'Ziyaret tavafı farzdır',
     icon: Icons.favorite_rounded,
     sure: '1 gün',
+    imagePath: 'assets/images/hac/7_veda.jfif',
     maddeler: [
       'Ziyaret tavafı (7 şavt) + 2 rekat namaz',
       'Hac sa\'yi (eğer yapılmadıysa)',

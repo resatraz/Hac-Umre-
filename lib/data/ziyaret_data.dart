@@ -15,6 +15,7 @@ const List<ZiyaretYeri> ziyaretYerleri = [
     icon: Icons.mosque_rounded,
     lat: 21.3891,
     lng: 39.8579,
+    imagePath: 'assets/images/ziyaret/mescidi_haram.jfif',
     ziyaretAdabi: 'Tavaf abdestiyle yapılır, yüksek sesle konuşulmaz, Kâbe\'ye edeple yaklaşılır.',
   ),
   ZiyaretYeri(
@@ -60,6 +61,7 @@ const List<ZiyaretYeri> ziyaretYerleri = [
     icon: Icons.water_drop_rounded,
     lat: 21.3891,
     lng: 39.8579,
+    imagePath: 'assets/images/ziyaret/zemzem.jfif',
     ziyaretAdabi: 'Kıbleye dönerek, besmeleyle ve dua ile içilir, başa dökülür.',
   ),
   ZiyaretYeri(
@@ -136,6 +138,7 @@ const List<ZiyaretYeri> ziyaretYerleri = [
     icon: Icons.mosque_outlined,
     lat: 24.4672,
     lng: 39.6111,
+    imagePath: 'assets/images/ziyaret/mescidi_nebevi.jfif',
     ziyaretAdabi: 'Sağ ayakla gir, selam ver, Ravza\'da namaz kılmaya gayret et.',
   ),
   ZiyaretYeri(

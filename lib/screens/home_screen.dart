@@ -15,7 +15,6 @@ import 'harita_screen.dart';
 import 'dualar_screen.dart';
 import 'zikirmatik_screen.dart';
 import 'takvim_screen.dart';
-import 'uygulama/uygulama_klasoru_screen.dart';
 import 'uygulama/mekke_medine_saati_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -36,7 +35,7 @@ class HomeScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Color(0xFF0D5C3D), Color(0xFF083826)],
+                    colors: [AppTheme.primary, AppTheme.primaryDark],
                   ),
                 ),
                   child: SafeArea(
@@ -103,6 +102,33 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             sliver: SliverToBoxAdapter(child: _HomeSaatKarti(onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MekkeMedineSaatiScreen())))),
           ),
+          // Hac / Umre öne çıkarıldı — büyük hero kartlar
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  _HeroCard(
+                    title: 'home.hajj'.tr(),
+                    subtitle: 'home.hajj_sub'.tr(),
+                    count: '${hacAdimlari.length} Adım • Farz',
+                    icon: Icons.mosque_rounded,
+                    gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HacRehberiScreen())),
+                  ),
+                  const SizedBox(height: 12),
+                  _HeroCard(
+                    title: 'home.umrah'.tr(),
+                    subtitle: 'home.umrah_sub'.tr(),
+                    count: '${umreAdimlari.length} Adım • Sünnet',
+                    icon: Icons.spa_rounded,
+                    gradient: const [Color(0xFF8D6E1F), Color(0xFFC5A253)],
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UmreRehberiScreen())),
+                  ),
+                ],
+              ),
+            ),
+          ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             sliver: SliverList.list(
@@ -126,24 +152,6 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 _ListCard(
-                  title: 'home.hajj'.tr(),
-                  subtitle: 'home.hajj_sub'.tr(),
-                  count: '${hacAdimlari.length} Adım',
-                  icon: Icons.mosque_rounded,
-                  gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HacRehberiScreen())),
-                ),
-                const SizedBox(height: 10),
-                _ListCard(
-                  title: 'home.umrah'.tr(),
-                  subtitle: 'home.umrah_sub'.tr(),
-                  count: '${umreAdimlari.length} Adım',
-                  icon: Icons.spa_rounded,
-                  gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UmreRehberiScreen())),
-                ),
-                const SizedBox(height: 10),
-                _ListCard(
                   title: 'home.ziyaret'.tr(),
                   subtitle: 'home.ziyaret_sub'.tr(),
                   count: '${ziyaretYerleri.length} Mekan',
@@ -160,74 +168,16 @@ class HomeScreen extends StatelessWidget {
                   gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HaritaScreen())),
                 ),
+                const SizedBox(height: 10),
+                _ListCard(
+                  title: 'home.dualar'.tr(),
+                  subtitle: 'home.dualar_sub'.tr(),
+                  count: 'API • Sesli',
+                  icon: Icons.menu_book_rounded,
+                  gradient: const [Color(0xFF0D5C3D), Color(0xFF1B8A5A)],
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DualarScreen())),
+                ),
               ],
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            sliver: SliverToBoxAdapter(
-              child: InkWell(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DualarScreen())),
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(Icons.menu_book_rounded, color: AppTheme.primary, size: 24),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('home.dualar'.tr(), style: Theme.of(context).textTheme.titleMedium),
-                            const SizedBox(height: 2),
-                            Text('home.dualar_sub'.tr(), style: Theme.of(context).textTheme.bodyMedium),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            sliver: SliverToBoxAdapter(
-              child: InkWell(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UygulamaKlasoruScreen())),
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.primary.withValues(alpha: 0.15)),
-                    boxShadow: [BoxShadow(color: AppTheme.proShadow, blurRadius: 10, offset: const Offset(0, 4))],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(gradient: AppTheme.proGradient, borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.apps_rounded, color: Colors.white, size: 22)),
-                      const SizedBox(width: 12),
-                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('home.uygulama'.tr(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)), Text('home.uygulama_sub'.tr(), style: const TextStyle(fontSize: 11, color: Colors.grey))])),
-                      Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(gradient: AppTheme.goldGradient, borderRadius: BorderRadius.circular(20)), child: Text('pro.badge'.tr(), style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800))),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
             ),
           ),
 
@@ -320,7 +270,35 @@ class _HomeSaatKartiState extends State<_HomeSaatKarti> {
                 const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 18),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: 'Mekke', label: Text('Mekke', style: TextStyle(fontSize: 11)), icon: Icon(Icons.mosque_rounded, size: 14)),
+                ButtonSegment(value: 'Medine', label: Text('Medine', style: TextStyle(fontSize: 11)), icon: Icon(Icons.mosque_outlined, size: 14)),
+              ],
+              selected: {_sehir},
+              showSelectedIcon: false,
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? Colors.white : Colors.white.withValues(alpha: 0.15)),
+                foregroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? AppTheme.primary : Colors.white),
+                side: WidgetStateProperty.all(BorderSide(color: Colors.white.withValues(alpha: 0.3))),
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onSelectionChanged: (s) async {
+                final sel = s.first;
+                final id = sel == 'Medine' ? 16308 : 16309;
+                final p = await SharedPreferences.getInstance();
+                await p.setInt('ezan_ilce', id);
+                await p.setString('ezan_label', sel);
+                setState(() {
+                  _sehir = sel;
+                  _aciklama = sel == 'Medine' ? 'Mescid-i Nebevi • Ravza' : 'Mescid-i Haram • Kâbe';
+                  _icon = sel == 'Medine' ? Icons.mosque_outlined : Icons.mosque_rounded;
+                });
+              },
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 SizedBox(width: 80, height: 80, child: CustomPaint(painter: _HomeAnalogPainter(time: riyadh))),
@@ -368,6 +346,63 @@ class _HomeAnalogPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _HomeAnalogPainter oldDelegate) => oldDelegate.time.second != time.second;
+}
+
+class _HeroCard extends StatelessWidget {
+  final String title, subtitle, count;
+  final IconData icon;
+  final List<Color> gradient;
+  final VoidCallback onTap;
+  const _HeroCard({required this.title, required this.subtitle, required this.count, required this.icon, required this.gradient, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        height: 120,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: gradient.first.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 6))],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(14)),
+              child: Icon(icon, color: Colors.white, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18)),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12)),
+                ],
+              ),
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
+                  child: Text(count, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(height: 6),
+                const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 22),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ignore: unused_element
