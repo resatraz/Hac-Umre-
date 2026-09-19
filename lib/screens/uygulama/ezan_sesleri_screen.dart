@@ -19,13 +19,21 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
   Set<String> _playing = {};
   bool _bildirimAcik = false;
   String? _bildirimSesId;
+  bool _titresim = true;
 
   @override
   void initState() {
     super.initState();
     _loadDownloaded();
     _loadBildirimState();
+    _loadTitresim();
     _bildirim.init();
+  }
+
+  Future<void> _loadTitresim() async {
+    final p = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() => _titresim = p.getBool('bildirim_titresim') ?? true);
   }
 
   Future<void> _loadDownloaded() async {
@@ -170,6 +178,27 @@ class _EzanSesleriScreenState extends State<EzanSesleriScreen> {
                       ],
                     ),
                   ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+            child: Row(
+              children: [
+                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.vibration_rounded, size: 18, color: AppTheme.primary)),
+                const SizedBox(width: 10),
+                const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Titreşim', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)), Text('Bildirimde titreşim', style: TextStyle(fontSize: 11, color: Colors.grey))])),
+                Switch(
+                  value: _titresim,
+                  activeThumbColor: AppTheme.primary,
+                  onChanged: (v) async {
+                    final p = await SharedPreferences.getInstance();
+                    await p.setBool('bildirim_titresim', v);
+                    setState(() => _titresim = v);
+                  },
+                ),
               ],
             ),
           ),

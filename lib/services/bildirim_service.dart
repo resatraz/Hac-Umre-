@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'ezan_vakti_service.dart';
@@ -32,11 +33,31 @@ class BildirimService {
     debugPrint('BildirimService ready');
   }
 
+  Future<bool> _titresimAcik() async {
+    try {
+      final p = await SharedPreferences.getInstance();
+      return p.getBool('bildirim_titresim') ?? true;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  Future<NotificationDetails> _details(String channelId, String channelName) async {
+    final titresim = await _titresimAcik();
+    final android = AndroidNotificationDetails(
+      channelId,
+      channelName,
+      channelDescription: 'Ezan vakitleri',
+      importance: Importance.high,
+      priority: Priority.high,
+      enableVibration: titresim,
+    );
+    return NotificationDetails(android: android, iOS: const DarwinNotificationDetails());
+  }
+
   Future<void> showTestBildirim({required String sehir}) async {
     if (!_ready) await init();
-    const android = AndroidNotificationDetails('ezan_vakti', 'Ezan Vakti', channelDescription: 'Ezan vakitleri', importance: Importance.high, priority: Priority.high);
-    const details = NotificationDetails(android: android, iOS: DarwinNotificationDetails());
-    await _plugin.show(0, 'Ezan Vakti', '$sehir için bildirim testi — Ezan sesi hazır', details, payload: 'ezan_vakti');
+    await _plugin.show(0, 'Ezan Vakti', '$sehir için bildirim testi — Ezan sesi hazır', await _details('ezan_vakti', 'Ezan Vakti'), payload: 'ezan_vakti');
   }
 
   Future<void> scheduleDaily({required int id, required String title, required String body, required int hour, required int minute}) async {
@@ -44,9 +65,14 @@ class BildirimService {
     final now = tz.TZDateTime.now(tz.local);
     var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
     if (scheduled.isBefore(now)) scheduled = scheduled.add(const Duration(days: 1));
-    const android = AndroidNotificationDetails('ezan_vakti_daily', 'Ezan Vakti Günlük', importance: Importance.high, priority: Priority.high);
-    const details = NotificationDetails(android: android);
-    await _plugin.zonedSchedule(id, title, body, scheduled, details, androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.time, payload: 'ezan_vakti');
+    final details = await _details('ezan_vakti_daily', 'Ezan Vakti Günlük');
+    try {
+      await _plugin.zonedSchedule(id, title, body, scheduled, details, androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.time, payload: 'ezan_vakti');
+    } catch (e) {
+      // Tam zamanlı alarm izni yoksa yaklaşık moda düş (Android 12+)
+      debugPrint('exact schedule failed, inexact fallback: $e');
+      await _plugin.zonedSchedule(id, title, body, scheduled, details, androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.time, payload: 'ezan_vakti');
+    }
   }
 
   Future<void> scheduleVakitBildirimleri(VakitGun vakit, String sehir) async {
